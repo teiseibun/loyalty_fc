@@ -12,6 +12,11 @@
 int main()
 {
 	led_init();
+	i2c1_init();
+
+	delay_ms(5);
+
+	while(mpu6050_init());
 
 	led_on(LED1);
 
