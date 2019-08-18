@@ -1,7 +1,7 @@
-#ifndef __MPU6050_H
-#define __MPU6050_H
+#ifndef __MPU6050_H__
+#define __MPU6050_H__
 
-#include "vector_space.h"
+#include "vector.h"
 
 /* MPU6050 register address */
 #define MPU6050_DEVICE_ADDRESS 0x68 << 1

@@ -7,7 +7,7 @@
 
 #include "delay.h"
 
-#include "vector_space.h"
+#include "vector.h"
 
 #define MPU6050_ACCEL_SCALE MPU6050A_4g
 #define MPU6050_GYRO_SCALE MPU6050G_2000dps
