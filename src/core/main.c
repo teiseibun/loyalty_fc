@@ -8,19 +8,35 @@
 
 #include "delay.h"
 
+volatile int cnt = 500;
+
+void SysTick_Handler()
+{
+	led_toggle(LED1);
+
+	if(cnt != 0) {
+		cnt--;
+	} else {
+		cnt = 500;
+		printf("hello\n\r");
+	}
+}
 
 int main()
 {
 	led_init();
 	i2c1_init();
+	uart3_init(115200);
 
 	delay_ms(5);
 
 	while(mpu6050_init());
 
-	led_on(LED1);
+	SysTick_Config(SystemCoreClock / 500); //500Hz flight controller main loop
 
 	while(1);
 
 	return 0;
+
+
 }

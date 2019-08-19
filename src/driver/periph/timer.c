@@ -13,14 +13,12 @@ void timer2_init()
 	};
 	TIM_TimeBaseInit(TIM2, &TimeBaseInitStruct);
 
-#if 0
 	NVIC_InitTypeDef NVIC_InitStruct = {
 		.NVIC_IRQChannel = TIM2_IRQn,
-		.NVIC_IRQChannelPreemptionPriority = configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY,
+		.NVIC_IRQChannelPreemptionPriority = 0,
 		.NVIC_IRQChannelCmd = ENABLE
 	};
 	NVIC_Init(&NVIC_InitStruct);
-#endif
 
 	TIM_ITConfig(TIM2, TIM_IT_Update, ENABLE);
 	TIM_Cmd(TIM2, ENABLE);
