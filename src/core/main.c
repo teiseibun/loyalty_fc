@@ -14,12 +14,7 @@ void SysTick_Handler()
 {
 	led_toggle(LED1);
 
-	if(cnt != 0) {
-		cnt--;
-	} else {
-		cnt = 500;
-		printf("hello\n\r");
-	}
+	printf("hello\n\r");
 }
 
 int main()

@@ -7,11 +7,15 @@
 
 void uart3_init(int baudrate)
 {
-	/* RCC clock initialization */
+	/* RCC initialization */
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA1, ENABLE);
 
-	/* GPIO initialazition */
+	/* GPIO initialization */
+	GPIO_PinAFConfig(GPIOB, GPIO_PinSource10, GPIO_AF_USART3);
+	GPIO_PinAFConfig(GPIOB, GPIO_PinSource11, GPIO_AF_USART3);
+
 	GPIO_InitTypeDef GPIO_InitStruct = {
 		.GPIO_Pin = GPIO_Pin_10 | GPIO_Pin_11,
 		.GPIO_Mode = GPIO_Mode_AF,
@@ -19,13 +23,9 @@ void uart3_init(int baudrate)
 		.GPIO_OType = GPIO_OType_PP,
 		.GPIO_PuPd = GPIO_PuPd_UP
 	};
-
-	GPIO_PinAFConfig(GPIOB, GPIO_PinSource10, GPIO_AF_USART3);
-	GPIO_PinAFConfig(GPIOB, GPIO_PinSource11, GPIO_AF_USART3);
-
 	GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-	/* USART initialazition */
+	/* USART initialization */
 	USART_InitTypeDef USART_InitStruct = {
 		.USART_BaudRate = baudrate,
 		.USART_Mode = USART_Mode_Rx | USART_Mode_Tx,
@@ -33,22 +33,44 @@ void uart3_init(int baudrate)
 		.USART_StopBits = USART_StopBits_1,
 		.USART_Parity = USART_Parity_No
 	};
-
 	USART_Init(USART3, &USART_InitStruct);
 
 	USART_Cmd(USART3, ENABLE);
+
+	USART_ClearFlag(USART3, USART_FLAG_TC);
+
+	/* DMA initialization */
+	DMA_ClearFlag(DMA1_Stream4, DMA_FLAG_TCIF4);
 }
 
-void uart3_putc(uint8_t data)
+void uart3_puts(uint8_t *datas, int size)
 {
-	USART_SendData(USART3, data);
-	while(USART_GetFlagStatus(USART3, USART_FLAG_TC) == RESET);
-}
+	DMA_ClearFlag(DMA1_Stream4, DMA_FLAG_TCIF4);
 
-void uart3_puts(uint8_t *str)
-{
-	for (; *str; str++)
-		uart3_putc(*str);
+	/* Setup the DMA */
+	DMA_InitTypeDef DMA_InitStructure = {
+		.DMA_BufferSize = (uint32_t)size,
+		.DMA_FIFOMode = DMA_FIFOMode_Disable,
+		.DMA_FIFOThreshold = DMA_FIFOThreshold_Full,
+		.DMA_MemoryBurst = DMA_MemoryBurst_Single,
+		.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte,
+		.DMA_MemoryInc = DMA_MemoryInc_Enable,
+		.DMA_Mode = DMA_Mode_Normal,
+		.DMA_PeripheralBaseAddr = (uint32_t)(&USART3->DR),
+		.DMA_PeripheralBurst = DMA_PeripheralBurst_Single,
+		.DMA_PeripheralInc = DMA_PeripheralInc_Disable,
+		.DMA_Priority = DMA_Priority_Medium,
+		.DMA_Channel = DMA_Channel_7,
+		.DMA_DIR = DMA_DIR_MemoryToPeripheral,
+		.DMA_Memory0BaseAddr = (uint32_t)datas
+        };
+	DMA_Init(DMA1_Stream4, &DMA_InitStructure);
+
+	/* Enable DMA to sent the data */
+	DMA_Cmd(DMA1_Stream4, ENABLE);
+	USART_DMACmd(USART3, USART_DMAReq_Tx, ENABLE);
+
+	while(DMA_GetFlagStatus(DMA1_Stream4, DMA_FLAG_TCIF4) == RESET);
 }
 
 uint8_t uart3_getc()
@@ -105,6 +127,6 @@ int printf(const char *format, ...)
 	}
 
 	va_end(para);
-	uart3_puts((uint8_t *)str);
+	uart3_puts((uint8_t *)str, strlen(str));
 	return 1;
 }
