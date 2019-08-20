@@ -3,6 +3,8 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
+
 #include "stm32f4xx_conf.h"
 
 void uart3_init(int baudrate)
@@ -43,6 +45,14 @@ void uart3_init(int baudrate)
 	DMA_ClearFlag(DMA1_Stream4, DMA_FLAG_TCIF4);
 }
 
+bool uart3_tx_busy()
+{
+	if(USART_GetFlagStatus(USART3, USART_FLAG_TC) == RESET)
+		return true;
+	else
+		return false; 
+}
+
 void uart3_puts(uint8_t *datas, int size)
 {
 	DMA_ClearFlag(DMA1_Stream4, DMA_FLAG_TCIF4);
@@ -69,8 +79,6 @@ void uart3_puts(uint8_t *datas, int size)
 	/* Enable DMA to sent the data */
 	DMA_Cmd(DMA1_Stream4, ENABLE);
 	USART_DMACmd(USART3, USART_DMAReq_Tx, ENABLE);
-
-	while(DMA_GetFlagStatus(DMA1_Stream4, DMA_FLAG_TCIF4) == RESET);
 }
 
 uint8_t uart3_getc()

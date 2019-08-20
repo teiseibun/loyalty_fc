@@ -1,31 +1,33 @@
+#include <stdbool.h>
+
 #include "uart.h"
 #include "i2c.h"
 #include "spi.h"
 #include "led.h"
 #include "timer.h"
-
 #include "mpu6050.h"
-
 #include "delay.h"
 
-volatile int cnt = 500;
+volatile int cnt = 50;
 
 void SysTick_Handler()
 {
 	led_toggle(LED1);
-
-	printf("hello\n\r");
 }
 
 void TIM2_IRQHandler()
 {
 	if(TIM_GetITStatus(TIM2, TIM_IT_Update) == SET) {
+		//toggle in 1Hz
 		if(cnt == 0) {
 			led_toggle(LED2);
-			cnt = 500;
+			cnt = 250;
 		} else {
 			cnt--;
 		}
+
+		if(uart3_tx_busy() == false)
+			printf("hello world!\n\r");
 
 		TIM_ClearITPendingBit(TIM2, TIM_FLAG_Update);
 	}
