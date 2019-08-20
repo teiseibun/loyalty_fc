@@ -17,6 +17,20 @@ void SysTick_Handler()
 	printf("hello\n\r");
 }
 
+void TIM2_IRQHandler()
+{
+	if(TIM_GetITStatus(TIM2, TIM_IT_Update) == SET) {
+		if(cnt == 0) {
+			led_toggle(LED2);
+			cnt = 500;
+		} else {
+			cnt--;
+		}
+
+		TIM_ClearITPendingBit(TIM2, TIM_FLAG_Update);
+	}
+}
+
 int main()
 {
 	led_init();
@@ -28,6 +42,7 @@ int main()
 	while(mpu6050_init());
 
 	SysTick_Config(SystemCoreClock / 500); //500Hz flight controller main loop
+	timer2_init(); //100Hz telemetry loop
 
 	while(1);
 
