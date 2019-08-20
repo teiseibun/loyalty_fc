@@ -53,7 +53,7 @@ bool uart3_tx_busy()
 		return false; 
 }
 
-void uart3_puts(uint8_t *datas, int size)
+void uart3_puts(uint8_t *data, int size)
 {
 	DMA_ClearFlag(DMA1_Stream4, DMA_FLAG_TCIF4);
 
@@ -72,7 +72,7 @@ void uart3_puts(uint8_t *datas, int size)
 		.DMA_Priority = DMA_Priority_Medium,
 		.DMA_Channel = DMA_Channel_7,
 		.DMA_DIR = DMA_DIR_MemoryToPeripheral,
-		.DMA_Memory0BaseAddr = (uint32_t)datas
+		.DMA_Memory0BaseAddr = (uint32_t)data
         };
 	DMA_Init(DMA1_Stream4, &DMA_InitStructure);
 
