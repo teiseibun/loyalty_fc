@@ -23,11 +23,11 @@ void TIM2_IRQHandler()
 		if(cnt == 0) {
 			led_toggle(LED2);
 			cnt = 50;
-
-			telemetry_loop();
 		} else {
 			cnt--;
 		}
+
+		telemetry_loop();
 
 		TIM_ClearITPendingBit(TIM2, TIM_FLAG_Update);
 	}
