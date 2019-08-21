@@ -5,9 +5,9 @@ void timer2_init()
 {
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
 
-	/* 84Mhz / (1680 * 100) = 500hz */
+	/* 84Mhz / (336 * 100) = 100hz */
 	TIM_TimeBaseInitTypeDef TimeBaseInitStruct = {
-		.TIM_Period = 1680 - 1,
+		.TIM_Period = 8400 - 1,
 		.TIM_Prescaler = 100 - 1,
 		.TIM_CounterMode = TIM_CounterMode_Up
 	};

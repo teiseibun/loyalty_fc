@@ -7,8 +7,9 @@
 #include "timer.h"
 #include "mpu6050.h"
 #include "delay.h"
+#include "link.h"
 
-volatile int cnt = 50;
+volatile int cnt = 100;
 
 void SysTick_Handler()
 {
@@ -21,13 +22,12 @@ void TIM2_IRQHandler()
 		//toggle in 1Hz
 		if(cnt == 0) {
 			led_toggle(LED2);
-			cnt = 250;
+			cnt = 50;
+
+			telemetry_loop();
 		} else {
 			cnt--;
 		}
-
-		if(uart3_tx_busy() == false)
-			printf("hello world!\n\r");
 
 		TIM_ClearITPendingBit(TIM2, TIM_FLAG_Update);
 	}

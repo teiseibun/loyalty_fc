@@ -4,12 +4,10 @@
 #include <stdint.h>
 
 typedef struct {
-	int graph_count;
 	uint8_t *payload;
 	int payload_count;
 } package_t;
 
-void insert_new_graph(package_t *package, char *data_name, float *data_float, int data_cnt);
-void send_onboard_data(package_t *package);
+void telemetry_loop();
 
 #endif
