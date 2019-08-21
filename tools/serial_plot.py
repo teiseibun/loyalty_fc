@@ -175,9 +175,6 @@ class SerialReadThread(threading.Thread):
 		while True:
 			analog_plot.read_new_data()
 
-#SerialReadThread().start()
-while True:
-    analog_plot.read_new_data()
-
-#analog_plot.set_show_line([i for i in range(0, 20)])
-#analog_plot.show()
+SerialReadThread().start()
+analog_plot.set_show_line([i for i in range(0, 20)])
+analog_plot.show()
