@@ -57,7 +57,28 @@ void telemetry_loop()
 
 	imu_t imu;
 	ahrs_t ahrs;
-	float alpha_roll = 0.5, alpha_pitch = 0;
+	float alpha_roll, alpha_pitch;
+
+	imu.raw_accel.x = 0.0f;
+	imu.raw_accel.y = 0.1f;
+	imu.raw_accel.z = 0.2f;
+	imu.filtered_accel.x = 0.3f;
+	imu.filtered_accel.y = 0.4f;
+	imu.filtered_accel.z = 0.5f;
+	imu.raw_gyro.x = 0.6f;
+	imu.raw_gyro.y = 0.7f;
+	imu.raw_gyro.z = 0.8f;
+	imu.filtered_gyro.x = 0.9f;
+	imu.filtered_gyro.y = 1.0f;
+	imu.filtered_gyro.z = 1.1f;
+	ahrs.accel.roll = 1.2f;
+	ahrs.accel.pitch = 1.3f;
+	ahrs.gyro.roll = 1.4f;
+	ahrs.gyro.pitch = 1.5f;
+	ahrs.gyro.yaw = 1.6f;
+	ahrs.mag.yaw = 1.7f;
+	alpha_roll = 1.8f;
+	alpha_pitch = 1.9f;
 
 	uint8_t payload[512] = {0}; //~64 float
 	int payload_size = 2; //reserved for header message
