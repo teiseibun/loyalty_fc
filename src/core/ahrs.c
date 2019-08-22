@@ -27,12 +27,12 @@ void euler_to_quat(attitude_t *euler, quat_t *q)
 {
 	q->q0 = cos(euler->roll/2.0f)*cos(euler->pitch/2.0f)*cos(euler->yaw/2.0f) +
 		sin(euler->roll/2.0f)*sin(euler->pitch/2.0f)*sin(euler->yaw/2.0f);
-	q->q1 = cos(euler->roll/2.0f)*cos(euler->pitch/2.0f)*cos(euler->yaw/2.0f) -
+	q->q1 = sin(euler->roll/2.0f)*cos(euler->pitch/2.0f)*cos(euler->yaw/2.0f) -
 		cos(euler->roll/2.0f)*sin(euler->pitch/2.0f)*sin(euler->yaw/2.0f);
 	q->q2 = cos(euler->roll/2.0f)*sin(euler->pitch/2.0f)*cos(euler->yaw/2.0f) +
 		sin(euler->roll/2.0f)*cos(euler->pitch/2.0f)*sin(euler->yaw/2.0f);
 	q->q3 = cos(euler->roll/2.0f)*cos(euler->pitch/2.0f)*sin(euler->yaw/2.0f) -
-		sin(euler->roll/2.0f)*cos(euler->pitch/2.0f);
+		sin(euler->roll/2.0f)*cos(euler->pitch/2.0f)*sin(euler->yaw/2.0f);
 }
 
 //in: quaterion, out: euler angle [radian]
