@@ -8,12 +8,15 @@
 #include "mpu6050.h"
 #include "delay.h"
 #include "link.h"
+#include "ahrs.h"
 
 volatile int cnt = 100;
 
 void SysTick_Handler()
 {
 	led_toggle(LED1);
+
+	ahrs_ekf_loop();
 }
 
 void TIM2_IRQHandler()

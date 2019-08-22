@@ -30,4 +30,6 @@ typedef struct {
         attitude_t fusion;
 } ahrs_t;
 
+void ahrs_ekf_loop(void);
+
 #endif

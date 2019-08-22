@@ -55,12 +55,10 @@ static void send_onboard_data(uint8_t *payload, int payload_count)
 
 void send_imu_message(void)
 {
-	imu.raw_accel.x = 0.98;
-
 	uint8_t payload[512] = {0}; //~64 float
 	int payload_size = 3; //reserved for header message
 
-	payload[2] = 0; //message id
+	payload[2] = MESSAGE_ID_IMU;
 
 	payload_size += pack_vector3d(&imu.raw_accel, payload + payload_size);
 	payload_size += pack_vector3d(&imu.filtered_accel, payload + payload_size);
@@ -74,8 +72,7 @@ void send_attitude_message(void)
 {
 	uint8_t payload[512] = {0}; //~64 float
 	int payload_size = 3; //reserved for header message
-
-	payload[2] = 1; //message id
+	payload[2] = MESSAGE_ID_ATTITUDE;
 
 	payload_size += pack_float(&ahrs.accel.roll, payload + payload_size);
 	payload_size += pack_float(&ahrs.accel.pitch, payload + payload_size);
