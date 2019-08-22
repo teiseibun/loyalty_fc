@@ -25,6 +25,6 @@ void ahrs_ekf_loop(void)
 	mpu6050_accel_convert_to_scale(&imu.unscaled_accel, &imu.raw_accel);
 	mpu6050_gyro_convert_to_scale(&imu.unscaled_gyro, &imu.raw_gyro);
 	
-	lpf_ema_vector3d(imu.raw_accel, &accel_lpf_old, &imu.filtered_accel, 0.01725);
-	lpf_ema_vector3d(imu.raw_gyro, &gyro_lpf_old, &imu.filtered_gyro, 0.01725);
+	lpf_ema_vector3d(&imu.raw_accel, &accel_lpf_old, &imu.filtered_accel, 0.9);
+	lpf_ema_vector3d(&imu.raw_gyro, &gyro_lpf_old, &imu.filtered_gyro, 0.9);
 }
