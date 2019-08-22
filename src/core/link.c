@@ -60,7 +60,7 @@ void send_imu_message(void)
 	uint8_t payload[512] = {0}; //~64 float
 	int payload_size = 3; //reserved for header message
 
-	payload[2] = 1; //message id
+	payload[2] = 0; //message id
 
 	payload_size += pack_vector3d(&imu.raw_accel, payload + payload_size);
 	payload_size += pack_vector3d(&imu.filtered_accel, payload + payload_size);

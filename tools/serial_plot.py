@@ -61,38 +61,39 @@ class serial_plotter_class:
 
 	return self.curve
 
-    def set_figure(self):		
-	plt.subplot(411)
-	plt.ylabel('accel [m/s^2]')
-	plt.ylim([-1.0, 2.0])
-	self.create_curve('x (raw)', 'red')		
-	self.create_curve('y (raw)', 'blue')		
-	self.create_curve('z (raw)', 'green')		
-	self.show_subplot()
+    def set_figure(self, message_id):
+        if(message_id == 0):
+        	plt.subplot(411)
+        	plt.ylabel('accel [m/s^2]')
+        	plt.ylim([-1.0, 2.0])
+        	self.create_curve('x (raw)', 'red')		
+        	self.create_curve('y (raw)', 'blue')		
+        	self.create_curve('z (raw)', 'green')		
+        	self.show_subplot()
 
-        plt.subplot(412)
-	plt.ylabel('accel [m/s^2]')
-	plt.ylim([-1.0, 2.0])
-	self.create_curve('x (moving average)', 'red')		
-	self.create_curve('y (moving average)', 'blue')		
-	self.create_curve('z (moving average)', 'green')		
-	self.show_subplot()
+                plt.subplot(412)
+        	plt.ylabel('accel [m/s^2]')
+        	plt.ylim([-1.0, 2.0])
+        	self.create_curve('x (moving average)', 'red')		
+        	self.create_curve('y (moving average)', 'blue')		
+        	self.create_curve('z (moving average)', 'green')		
+        	self.show_subplot()
 
-	plt.subplot(413)
-	plt.ylabel('gyro [degree/s]')
-	plt.ylim([-450, 450])
-	self.create_curve('x (raw)', 'red')		
-	self.create_curve('y (raw)', 'blue')		
-	self.create_curve('z (raw)', 'green')		
-	self.show_subplot()
+        	plt.subplot(413)
+        	plt.ylabel('gyro [degree/s]')
+        	plt.ylim([-450, 450])
+        	self.create_curve('x (raw)', 'red')		
+        	self.create_curve('y (raw)', 'blue')		
+        	self.create_curve('z (raw)', 'green')		
+        	self.show_subplot()
 
-        plt.subplot(414)
-	plt.ylabel('gyro [degree/s]')
-	plt.ylim([-450, 450])
-	self.create_curve('x (moving average)', 'red')		
-	self.create_curve('y (moving average)', 'blue')		
-	self.create_curve('z (moving average)', 'green')		
-	self.show_subplot()
+                plt.subplot(414)
+        	plt.ylabel('gyro [degree/s]')
+        	plt.ylim([-450, 450])
+        	self.create_curve('x (moving average)', 'red')		
+        	self.create_curve('y (moving average)', 'blue')		
+        	self.create_curve('z (moving average)', 'green')		
+        	self.show_subplot()
 
     def show_graph(self):
 	ani = animation.FuncAnimation(self.figure, self.animate, np.arange(0, 200), \
@@ -147,8 +148,8 @@ class serial_plotter_class:
             if self.plot_begin == False:
                 self.curve_count = payload_count / 4
                 self.serial_data = [serial_data_class(200) for i in range(0, self.curve_count)]
-                self.curve_numbers = [i for i in range(0, 12)]
-        	self.set_figure()
+                self.curve_numbers = [i for i in range(0, self.curve_count)]
+        	self.set_figure(message_id)
                 self.plot_begin = True
 
             for i in range(0, self.curve_count):
