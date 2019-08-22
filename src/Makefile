@@ -66,7 +66,8 @@ SRC+=$(DRIVER)/device/mpu6050.c
 
 CFLAGS+=-I$(CORE)
 SRC+=$(CORE)/main.c \
-	$(CORE)/link.c
+	$(CORE)/link.c \
+	$(CORE)/ahrs.c
 
 CFLAGS+=-I./
 

@@ -8,7 +8,7 @@ import struct
 from collections import deque
 
 ser = serial.Serial(
-    port='/dev/ttyUSB1',\
+    port='/dev/ttyUSB0',\
     baudrate=115200,\
     parity=serial.PARITY_NONE,\
     stopbits=serial.STOPBITS_ONE,\
@@ -57,50 +57,36 @@ class serial_plotter_class:
 	return self.curve
 
     def set_figure(self):		
-	plt.subplot(511)
-	plt.ylabel('Acceleration (g)')
+	plt.subplot(411)
+	plt.ylabel('accel [m/s^2]')
 	plt.ylim([-1.0, 2.0])
-	self.create_curve('x axis (raw data)', 'red')		
-	self.create_curve('y axis (raw data)', 'blue')		
-	self.create_curve('z axis (raw data)', 'green')		
-	self.create_curve('x axis (filtered data)', 'orange')		
-	self.create_curve('y axis (filtered data)', 'yellow')	
-	
-	self.create_curve('z axis (filtered data)', 'purple')		
+	self.create_curve('x (raw)', 'red')		
+	self.create_curve('y (raw)', 'blue')		
+	self.create_curve('z (raw)', 'green')		
 	self.show_subplot()
 
-	plt.subplot(512)
-	plt.ylabel('Degree per second (dps)')
+        plt.subplot(412)
+	plt.ylabel('accel [m/s^2]')
+	plt.ylim([-1.0, 2.0])
+	self.create_curve('x (moving average)', 'red')		
+	self.create_curve('y (moving average)', 'blue')		
+	self.create_curve('z (moving average)', 'green')		
+	self.show_subplot()
+
+	plt.subplot(413)
+	plt.ylabel('gyro [degree/s]')
 	plt.ylim([-450, 450])
-	self.create_curve('x axis (raw data)', 'red')		
-	self.create_curve('y axis (raw data)', 'blue')		
-	self.create_curve('z axis (raw data)', 'green')		
-	self.create_curve('x axis (filtered data)', 'orange')		
-	self.create_curve('y axis (filtered data)', 'yellow')		
-	self.create_curve('z axis (filtered data)', 'purple')		
+	self.create_curve('x (raw)', 'red')		
+	self.create_curve('y (raw)', 'blue')		
+	self.create_curve('z (raw)', 'green')		
 	self.show_subplot()
 
-	plt.subplot(513)
-	plt.ylabel('Attitude (degree)')
-	plt.ylim([-90, 360])
-	self.create_curve('Roll (accelerometer)', 'red')		
-	self.create_curve('Pitch (accelerometer)', 'blue')		
-	self.create_curve('Yaw (magnetometer)', 'green')		
-	self.show_subplot()
-
-	plt.subplot(514)
-	plt.ylabel('Attitude (degree)')
-	plt.ylim([-90, 90])
-	self.create_curve('Roll (gyroscope)', 'red')		
-	self.create_curve('Pitch (gyroscope)', 'blue')		
-	self.create_curve('Yaw (gyroscope)', 'green')		
-	self.show_subplot()
-
-	plt.subplot(515)
-	plt.ylabel('Complementry filter')
-	plt.ylim([0.95, 1.05])
-	self.create_curve('alpha (roll)', 'red')		
-	self.create_curve('alpha (pitch)', 'blue')		
+        plt.subplot(414)
+	plt.ylabel('gyro [degree/s]')
+	plt.ylim([-450, 450])
+	self.create_curve('x (moving average)', 'red')		
+	self.create_curve('y (moving average)', 'blue')		
+	self.create_curve('z (moving average)', 'green')		
 	self.show_subplot()
 
     def set_curve(self, curve_numbers):
@@ -158,8 +144,8 @@ class serial_plotter_class:
             return 'success'
 
 #Analog plot
-serial_data = [serial_data_class(200) for i in range(0, 20)]
-serial_plotter = serial_plotter_class(20, serial_data)
+serial_data = [serial_data_class(200) for i in range(0, 12)]
+serial_plotter = serial_plotter_class(12, serial_data)
 
 class serial_thread(threading.Thread):
 	def run(self):
@@ -168,5 +154,5 @@ class serial_thread(threading.Thread):
 
 print("connected to: " + ser.portstr)
 serial_thread().start()
-serial_plotter.set_curve([i for i in range(0, 20)])
+serial_plotter.set_curve([i for i in range(0, 12)])
 serial_plotter.show_graph()
