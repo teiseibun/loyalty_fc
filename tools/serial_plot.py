@@ -38,12 +38,12 @@ class serial_plotter_class:
         self.plot_begin = False;
 
     def set_graph(curve_count, serial_data):
-	self.curve_count = curve_count
+	self.curve_number = curve_count
 	self.serial_data = serial_data
 
     def create_curve(self, label_name, curve_color):
-	for i in range(0, len(self.curve_numbers)):
-		if self.curve_numbers[i] == self.current_curve_count:
+	for i in range(0, len(self.curve_indexs)):
+		if self.curve_indexs[i] == self.current_curve_count:
 			self.curve.append(plt.plot(self.serial_data[self.current_curve_count].data, \
 				label=label_name, color=curve_color, animated=True)[0])
 
@@ -55,9 +55,9 @@ class serial_plotter_class:
 		ncol=3, fancybox=True, shadow=True)
 
     def animate(self, i):
-	for index in range(0, len(self.curve_numbers)):
+	for index in range(0, len(self.curve_indexs)):
 		self.curve[index].set_ydata( \
-			self.serial_data[self.curve_numbers[index]].data)
+			self.serial_data[self.curve_indexs[index]].data)
 
 	return self.curve
 
@@ -137,8 +137,8 @@ class serial_plotter_class:
                 checksum ^= buffer_checksum
 
             #checksum test
-            checksum_byte ,= struct.unpack("B", ser.read())
-            if checksum_byte != checksum:
+            received_checksum ,= struct.unpack("B", ser.read())
+            if received_checksum != checksum:
                     print("error: checksum mismatch");
                     return 'fail'
             else:
@@ -146,13 +146,13 @@ class serial_plotter_class:
                     pass
 
             if self.plot_begin == False:
-                self.curve_count = payload_count / 4
-                self.serial_data = [serial_data_class(200) for i in range(0, self.curve_count)]
-                self.curve_numbers = [i for i in range(0, self.curve_count)]
+                self.curve_number = payload_count / 4
+                self.serial_data = [serial_data_class(200) for i in range(0, self.curve_number)]
+                self.curve_indexs = [i for i in range(0, self.curve_number)]
         	self.set_figure(message_id)
                 self.plot_begin = True
 
-            for i in range(0, self.curve_count):
+            for i in range(0, self.curve_number):
                 #unpack received data
                 binary_data = ''.join([buffer[i * 4], buffer[i * 4 + 1], buffer[i * 4 + 2], buffer[i * 4 + 3]])
                 float_data = np.asarray(struct.unpack("f", binary_data))
