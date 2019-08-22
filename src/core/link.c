@@ -74,9 +74,7 @@ void send_attitude_message(void)
 	int payload_size = 3; //reserved for header message
 	payload[2] = MESSAGE_ID_ATTITUDE;
 
-	payload_size += pack_float(&ahrs.accel.roll, payload + payload_size);
-	payload_size += pack_float(&ahrs.accel.pitch, payload + payload_size);
-	payload_size += pack_float(&ahrs.mag.yaw, payload + payload_size);
+	payload_size += pack_attitude(&ahrs.attitude, payload + payload_size);
 
 	send_onboard_data(payload, payload_size);
 }
@@ -86,5 +84,6 @@ void telemetry_loop()
 	if(uart3_tx_busy() == true)
 		return;
 
-	send_imu_message();
+	//send_imu_message();
+	send_attitude_message();
 }

@@ -94,6 +94,15 @@ class serial_plotter_class:
         	self.create_curve('y (moving average)', 'blue')		
         	self.create_curve('z (moving average)', 'green')		
         	self.show_subplot()
+        elif message_id == 1:
+                plt.subplot(111)
+        	plt.ylabel('gyro [degree/s]')
+        	plt.ylim([-450, 450])
+        	self.create_curve('roll', 'red')		
+        	self.create_curve('pitch', 'blue')		
+        	self.create_curve('yaw', 'green')		
+        	self.show_subplot()
+               
 
     def show_graph(self):
 	ani = animation.FuncAnimation(self.figure, self.animate, np.arange(0, 200), \

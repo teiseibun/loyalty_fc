@@ -28,10 +28,7 @@ typedef struct {
 } attitude_t;
 
 typedef struct {
-        attitude_t accel;
-        attitude_t gyro;
-        attitude_t mag;
-        attitude_t fusion;
+	attitude_t attitude;
 } ahrs_t;
 
 void ahrs_ekf_init(void);
