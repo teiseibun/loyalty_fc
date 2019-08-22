@@ -22,6 +22,20 @@ void ahrs_ekf_init(void)
 	gyro_lpf_old = imu.raw_gyro;
 }
 
+//in: euler angle [radian], out: quaternion
+void euler_to_quat(attitude_t *euler, quat_t *q)
+{
+	q->q0 = cos(euler->roll/2.0f)*cos(euler->pitch/2.0f)*cos(euler->yaw/2.0f) +
+		sin(euler->roll/2.0f)*sin(euler->pitch/2.0f)*sin(euler->yaw/2.0f);
+	q->q1 = cos(euler->roll/2.0f)*cos(euler->pitch/2.0f)*cos(euler->yaw/2.0f) -
+		cos(euler->roll/2.0f)*sin(euler->pitch/2.0f)*sin(euler->yaw/2.0f);
+	q->q2 = cos(euler->roll/2.0f)*sin(euler->pitch/2.0f)*cos(euler->yaw/2.0f) +
+		sin(euler->roll/2.0f)*cos(euler->pitch/2.0f)*sin(euler->yaw/2.0f);
+	q->q3 = cos(euler->roll/2.0f)*cos(euler->pitch/2.0f)*sin(euler->yaw/2.0f) -
+		sin(euler->roll/2.0f)*cos(euler->pitch/2.0f);
+}
+
+//in: quaterion, out: euler angle [radian]
 void quat_to_euler(quat_t *q, attitude_t *euler)
 {
 	euler->roll = atan2(2.0*(q->q0*q->q1 + q->q2*q->q3), 1.0-2.0*(q->q1*q->q1 + q->q2*q->q2));
@@ -40,6 +54,4 @@ void ahrs_ekf_loop(void)
 	//smooth imu signal with lpf
 	lpf_ema_vector3d(&imu.raw_accel, &accel_lpf_old, &imu.filtered_accel, 0.9);
 	lpf_ema_vector3d(&imu.raw_gyro, &gyro_lpf_old, &imu.filtered_gyro, 0.9);
-
-	
 }
