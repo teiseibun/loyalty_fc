@@ -15,6 +15,8 @@ ser = serial.Serial(
     bytesize=serial.EIGHTBITS,\
     timeout=0)
 
+print("connected to: " + ser.portstr)
+
 class serial_data_class:
     def __init__(self, max_count):
 	self.max_count = max_count
@@ -32,7 +34,6 @@ class serial_plotter_class:
 	self.figure = plt.figure(figsize=(14,8))
 	self.curve = []
 	self.current_curve_count = 0
-	self.curve_numbers = []
         self.plot_begin = False;
 
     def set_graph(curve_count, serial_data):
@@ -92,8 +93,8 @@ class serial_plotter_class:
 	self.create_curve('z (moving average)', 'green')		
 	self.show_subplot()
 
-    def set_curve(self, curve_numbers):
-	self.curve_numbers = curve_numbers
+    def set_curve(self):
+	self.curve_numbers = [i for i in range(0, 12)]
 	self.set_figure()
 
     def show_graph(self):
@@ -132,16 +133,17 @@ class serial_plotter_class:
             #checksum test
             checksum_byte ,= struct.unpack("B", ser.read())
             if checksum_byte != checksum:
-                    print("error: checksum mismatch");
+                    #print("error: checksum mismatch");
                     return 'fail'
             else:
                     print("checksum is correct (%d)" %(checksum))
 
             if self.plot_begin == False:
-                self.plot_begin = True
                 self.curve_count = payload_count / 4
                 self.serial_data = [serial_data_class(200) for i in range(0, self.curve_count)]
-                print(self.curve_count)
+                self.curve_numbers = [i for i in range(0, 12)]
+        	self.set_figure()
+                self.plot_begin = True
 
             for i in range(0, self.curve_count):
                 #unpack received data
@@ -152,7 +154,6 @@ class serial_plotter_class:
             #print("-----------------------------");
             return 'success'
 
-#Analog plot
 serial_plotter = serial_plotter_class()
 
 class serial_thread(threading.Thread):
@@ -160,10 +161,9 @@ class serial_thread(threading.Thread):
 		while True:
 			serial_plotter.serial_receive()
 
-print("connected to: " + ser.portstr)
 serial_thread().start()
 
 while serial_plotter.plot_begin == False:
     continue
-serial_plotter.set_curve([i for i in range(0, 12)])
+
 serial_plotter.show_graph()
