@@ -28,14 +28,17 @@ class serial_data_class:
 	self.data.appendleft(value)
 
 class serial_plotter_class:
-    def __init__(self, curve_count, serial_data):
+    def __init__(self):
 	self.figure = plt.figure(figsize=(14,8))
 	self.curve = []
-	self.curve_count = curve_count
 	self.current_curve_count = 0
-	self.serial_data = serial_data
 	self.curve_numbers = []
-    
+        self.plot_begin = False;
+
+    def set_graph(curve_count, serial_data):
+	self.curve_count = curve_count
+	self.serial_data = serial_data
+
     def create_curve(self, label_name, curve_color):
 	for i in range(0, len(self.curve_numbers)):
 		if self.curve_numbers[i] == self.current_curve_count:
@@ -134,18 +137,23 @@ class serial_plotter_class:
             else:
                     print("checksum is correct (%d)" %(checksum))
 
-            for i in range(0, payload_count / 4):
+            if self.plot_begin == False:
+                self.plot_begin = True
+                self.curve_count = payload_count / 4
+                self.serial_data = [serial_data_class(200) for i in range(0, self.curve_count)]
+                print(self.curve_count)
+
+            for i in range(0, self.curve_count):
                 #unpack received data
                 binary_data = ''.join([buffer[i * 4], buffer[i * 4 + 1], buffer[i * 4 + 2], buffer[i * 4 + 3]])
                 float_data = np.asarray(struct.unpack("f", binary_data))
                 self.serial_data[i].add(float_data)
-                print("received: %f" %(float_data))
-            print("-----------------------------");
+                #print("received: %f" %(float_data))
+            #print("-----------------------------");
             return 'success'
 
 #Analog plot
-serial_data = [serial_data_class(200) for i in range(0, 12)]
-serial_plotter = serial_plotter_class(12, serial_data)
+serial_plotter = serial_plotter_class()
 
 class serial_thread(threading.Thread):
 	def run(self):
@@ -154,5 +162,8 @@ class serial_thread(threading.Thread):
 
 print("connected to: " + ser.portstr)
 serial_thread().start()
+
+while serial_plotter.plot_begin == False:
+    continue
 serial_plotter.set_curve([i for i in range(0, 12)])
 serial_plotter.show_graph()
