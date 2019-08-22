@@ -26,7 +26,7 @@ void quat_to_euler(quat_t *q, attitude_t *euler)
 {
 	euler->roll = atan2(2.0*(q->q0*q->q1 + q->q2*q->q3), 1.0-2.0*(q->q1*q->q1 + q->q2*q->q2));
 	euler->pitch = asin(2.0*(q->q0*q->q2 - q->q3*q->q1));
-	euler->yaw = atan2(2.0*(q->q0*q->q3 + q->q1*q->q2), 1.0-2.0*(q->q2*q->q2 - q->q3*q->q3));
+	euler->yaw = atan2(2.0*(q->q0*q->q3 + q->q1*q->q2), 1.0-2.0*(q->q2*q->q2 + q->q3*q->q3));
 }
 
 void ahrs_ekf_loop(void)
