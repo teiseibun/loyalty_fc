@@ -42,10 +42,10 @@ static void send_onboard_data(uint8_t *payload, int payload_count)
 {
         uint8_t checksum;
 
-        checksum = generate_checksum_byte(payload + 2, payload_count - 2);
+        checksum = generate_checksum_byte(payload + 3, payload_count - 3);
 
 	payload[0] = '@';
-	payload[1] = payload_count - 2;
+	payload[1] = payload_count - 3;
 
 	payload[payload_count] = checksum;
 	payload_count++;
@@ -55,10 +55,12 @@ static void send_onboard_data(uint8_t *payload, int payload_count)
 
 void send_imu_message(void)
 {
-	uint8_t payload[512] = {0}; //~64 float
-	int payload_size = 2; //reserved for header message
-
 	imu.raw_accel.x = 0.98;
+
+	uint8_t payload[512] = {0}; //~64 float
+	int payload_size = 3; //reserved for header message
+
+	payload[2] = 1; //message id
 
 	payload_size += pack_vector3d(&imu.raw_accel, payload + payload_size);
 	payload_size += pack_vector3d(&imu.filtered_accel, payload + payload_size);
@@ -71,7 +73,9 @@ void send_imu_message(void)
 void send_attitude_message(void)
 {
 	uint8_t payload[512] = {0}; //~64 float
-	int payload_size = 2; //reserved for header message
+	int payload_size = 3; //reserved for header message
+
+	payload[2] = 1; //message id
 
 	payload_size += pack_float(&ahrs.accel.roll, payload + payload_size);
 	payload_size += pack_float(&ahrs.accel.pitch, payload + payload_size);

@@ -6,6 +6,7 @@ import threading
 import serial
 import struct
 from collections import deque
+from datetime import datetime
 
 ser = serial.Serial(
     port='/dev/ttyUSB0',\
@@ -93,10 +94,6 @@ class serial_plotter_class:
 	self.create_curve('z (moving average)', 'green')		
 	self.show_subplot()
 
-    def set_curve(self):
-	self.curve_numbers = [i for i in range(0, 12)]
-	self.set_figure()
-
     def show_graph(self):
 	ani = animation.FuncAnimation(self.figure, self.animate, np.arange(0, 200), \
 		interval=0, blit=True)
@@ -112,7 +109,8 @@ class serial_plotter_class:
 
             #wait for start byte
             if c == '@':
-                print('start byte received')
+                #print('start byte received')
+                pass
             else:
                 continue
 
@@ -120,7 +118,14 @@ class serial_plotter_class:
             while ser.inWaiting() == 0:
                 continue
             payload_count, =  struct.unpack("B", ser.read(1))
-            print('payload size: %d' %(payload_count))
+            #print('payload size: %d' %(payload_count))
+
+            #receive message id
+            while ser.inWaiting() == 0:
+                continue
+            _message_id, =  struct.unpack("c", ser.read(1))
+            message_id = ord(_message_id)
+            print('[%s]received message, id:%d' %(datetime.now().strftime('%H:%M:%S'), message_id))
 
             #receive payload and calculate checksum
             for i in range(0, payload_count):
@@ -133,10 +138,11 @@ class serial_plotter_class:
             #checksum test
             checksum_byte ,= struct.unpack("B", ser.read())
             if checksum_byte != checksum:
-                    #print("error: checksum mismatch");
+                    print("error: checksum mismatch");
                     return 'fail'
             else:
-                    print("checksum is correct (%d)" %(checksum))
+                    #print("checksum is correct (%d)" %(checksum))
+                    pass
 
             if self.plot_begin == False:
                 self.curve_count = payload_count / 4
