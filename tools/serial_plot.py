@@ -166,7 +166,7 @@ class serial_plotter_class:
                 binary_data = ''.join([buffer[i * 4], buffer[i * 4 + 1], buffer[i * 4 + 2], buffer[i * 4 + 3]])
                 float_data = np.asarray(struct.unpack("f", binary_data))
                 self.serial_data[i].add(float_data)
-                #print("received: %f" %(float_data))
+                print("received: %f" %(float_data))
             #print("-----------------------------");
             return 'success'
 

@@ -29,6 +29,7 @@ MAT_ALLOC(K, 4, 3);
 MAT_ALLOC(FP, 4, 4);
 MAT_ALLOC(PF, 4, 4);
 //-----------------------
+MAT_ALLOC(x_pred, 4, 1);
 MAT_ALLOC(dx, 4, 1);
 MAT_ALLOC(H_trans, 4, 3);
 MAT_ALLOC(HPHR, 3, 3);
@@ -52,6 +53,7 @@ void ahrs_ekf_init(void)
 	MAT_INIT(K, 4, 3);
 	//-----------------------
 	MAT_INIT(dx, 4, 1);
+	MAT_INIT(x_pred, 4, 1);
 	MAT_INIT(H_trans, 4, 3);
 	MAT_INIT(HPHR_inv, 3, 3);
 	MAT_INIT(FP, 4, 4);
@@ -136,13 +138,17 @@ void ahr_ekf_state_predict(void)
 	_mat_(y)[1] = imu.filtered_gyro.y;
 	_mat_(y)[2] = imu.filtered_gyro.z;
 
-#if 0
 	MAT_MULT(&f, &y, &dx);
-	MAT_ADD(&x, &x, &dx);
+	MAT_ADD(&x, &dx, &x);
 
-	//print_matrix(_mat_(f), 4, 3);
-	//print_matrix(_mat_(dx), 4, 1);
-	//printf("%f, %f, %f, %f\n\r", _mat_(dx)[0], _mat_(dx)[1], _mat_(dx)[2], _mat_(dx)[3]);
+#if 0
+	if(uart3_tx_busy() == false) {
+		//print_matrix(_mat_(dx), 4, 1);
+		//print_matrix(_mat_(f), 4, 3);
+		//print_matrix(_mat_(dx), 4, 1);
+		print_matrix(_mat_(dx), 4, 1);
+	}
+#endif
 
 	quat_t q;
 	q.q0 = _mat_(x)[0];
@@ -158,7 +164,6 @@ void ahr_ekf_state_predict(void)
 	quat_to_euler(&q, &ahrs.attitude);
         ahrs.attitude.roll = rad_to_deg(ahrs.attitude.roll);
 	ahrs.attitude.pitch = rad_to_deg(ahrs.attitude.pitch);
-#endif
 }
 
 void ahrs_ekf_loop(void)

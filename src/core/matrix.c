@@ -9,6 +9,9 @@ volatile arm_status mat_op_status = 0;
 
 void print_matrix(float *mat_arr, int r, int c)
 {
+	while(uart3_tx_busy() == true);
+	printf("matrix:\n\r");
+
 	int i, j;
 	for(i = 0; i < r; i++) {
 		for(j = 0; j < c; j++) {

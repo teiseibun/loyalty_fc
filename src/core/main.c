@@ -38,7 +38,7 @@ void TIM2_IRQHandler()
 
 int main()
 {
-        //NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
+        NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
 
 	led_init();
 	i2c1_init();
