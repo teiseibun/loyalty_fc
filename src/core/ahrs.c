@@ -84,7 +84,7 @@ void euler_to_quat(attitude_t *euler, quat_t *q)
 	q->q2 = arm_cos_f32(phi)*arm_sin_f32(theta)*arm_cos_f32(psi) +
 		arm_sin_f32(phi)*arm_cos_f32(theta)*arm_sin_f32(psi);
 	q->q3 = arm_cos_f32(phi)*arm_cos_f32(theta)*arm_sin_f32(psi) -
-		arm_sin_f32(phi)*arm_cos_f32(theta)*arm_sin_f32(psi);
+		arm_sin_f32(phi)*arm_sin_f32(theta)*arm_cos_f32(psi);
 }
 
 void quat_normalize(quat_t *q)
