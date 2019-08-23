@@ -10,7 +10,7 @@
 #include "uart.h"
 #include "matrix.h"
 
-#define dt 0.002 //500Hz = 0.002s
+#define dt 0.0002 //500Hz = 0.002s
 
 imu_t imu;
 ahrs_t ahrs;
