@@ -1,24 +1,14 @@
 #include <math.h>
-#include "arm_math.h"
 
+#include "arm_math.h"
+#include "led.h"
 #include "mpu6050.h"
 #include "ahrs.h"
 #include "vector.h"
 #include "lpf.h"
 #include "quaternion.h"
-
-#define MAT_ALLOC(mat, row, col) \
-	arm_matrix_instance_f32 mat; \
-	float mat ## _arr[row * col]
-
-#define MAT_INIT(mat, row, col) \
-	arm_mat_init_f32(&mat, row, col, (float32_t *)mat ## _arr)
-
-#define MAT_TRANS(mat, mat_trans) \
-	arm_mat_trans_f32(mat, mat_trans)
-
-#define MAT_INV(mat, mat_inv) \
-	arm_mat_inverse_f32(mat, mat_inv); 
+#include "uart.h"
+#include "matrix.h"
 
 imu_t imu;
 ahrs_t ahrs;
@@ -44,6 +34,37 @@ MAT_ALLOC(I, 4, 4) = {1, 0, 0 ,0,
 		      0, 0, 1, 0,
 		      0, 0, 0, 1};
 
+void matrix_unit_test(void)
+{
+	//matrix unit tests
+	MAT_ALLOC(A, 3, 3) = {1, 2, 3, 0, 0, 0, 2, 2, 3};
+	MAT_INIT(A, 3, 3);
+	MAT_ALLOC(A_trans, 3, 3);
+	MAT_INIT(A_trans, 3, 3);
+	MAT_ALLOC(A_inv, 3, 3);
+	MAT_INIT(A_inv, 3, 3);
+	MAT_ALLOC(B, 3, 3) = {1, 0, 0, 1, 1, 1, 0, 0, 0};
+	MAT_INIT(B, 3, 3);
+	MAT_ALLOC(C, 3, 3) = {0};
+	MAT_INIT(C, 3, 3);
+
+#if 1
+	MAT_ADD(&A, &B, &C);
+	print_matrix(C_arr, 3, 3);
+	MAT_SUB(&A, &B, &C);
+	print_matrix(C_arr, 3, 3);
+	MAT_MULT(&A, &B, &C);
+	print_matrix(C_arr, 3, 3);
+	MAT_TRANS(&A, &A_trans);
+	print_matrix(A_trans_arr, 3, 3);
+#endif
+
+#if 1
+	MAT_INV(&A, &A_inv);
+	print_matrix(A_inv_arr, 3, 3);
+#endif
+}
+
 void ahrs_ekf_init(void)
 {
 	//initialize matrices
@@ -60,6 +81,9 @@ void ahrs_ekf_init(void)
 	MAT_INIT(HPHR_inv, 3, 3);
 	MAT_INIT(FP, 4, 4);
 	MAT_INIT(PF, 4, 4);
+
+	matrix_unit_test();
+	while(1);
 
 	//initialize lpf
 	mpu6050_read_unscaled_data(&imu.unscaled_accel, &imu.unscaled_gyro);
