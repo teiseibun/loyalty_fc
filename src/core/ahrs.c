@@ -40,6 +40,17 @@ void euler_to_quat(attitude_t *euler, quat_t *q)
 		arm_sin_f32(phi)*arm_cos_f32(theta)*arm_sin_f32(psi);
 }
 
+void quat_normalize(quat_t *q)
+{
+	float sq_sum = (q->q0)*(q->q0) + (q->q1)*(q->q1) + (q->q2)*(q->q2) + (q->q3)*(q->q3);
+	float norm;
+	arm_sqrt_f32(sq_sum, &norm);
+	q->q0 /= norm;
+	q->q1 /= norm;
+	q->q2 /= norm;
+	q->q3 /= norm;
+}
+
 //in: quaterion, out: euler angle [radian]
 void quat_to_euler(quat_t *q, attitude_t *euler)
 {
