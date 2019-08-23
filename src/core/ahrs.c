@@ -1,4 +1,5 @@
 #include <math.h>
+#include "arm_math.h"
 
 #include "mpu6050.h"
 #include "ahrs.h"
@@ -25,14 +26,18 @@ void ahrs_ekf_init(void)
 //in: euler angle [radian], out: quaternion
 void euler_to_quat(attitude_t *euler, quat_t *q)
 {
-	q->q0 = cos(euler->roll*0.5f)*cos(euler->pitch*0.5f)*cos(euler->yaw*0.5f) +
-		sin(euler->roll*0.5f)*sin(euler->pitch*0.5f)*sin(euler->yaw*0.5f);
-	q->q1 = sin(euler->roll*0.5f)*cos(euler->pitch*0.5f)*cos(euler->yaw*0.5f) -
-		cos(euler->roll*0.5f)*sin(euler->pitch*0.5f)*sin(euler->yaw*0.5f);
-	q->q2 = cos(euler->roll*0.5f)*sin(euler->pitch*0.5f)*cos(euler->yaw*0.5f) +
-		sin(euler->roll*0.5f)*cos(euler->pitch*0.5f)*sin(euler->yaw*0.5f);
-	q->q3 = cos(euler->roll*0.5f)*cos(euler->pitch*0.5f)*sin(euler->yaw*0.5f) -
-		sin(euler->roll*0.5f)*cos(euler->pitch*0.5f)*sin(euler->yaw*0.5f);
+	float phi = euler->roll * 0.5f;
+	float theta = euler->pitch * 0.5f;
+	float psi = euler->yaw * 0.5f;
+
+	q->q0 = arm_cos_f32(phi)*arm_cos_f32(theta)*arm_cos_f32(psi) +
+		arm_sin_f32(phi)*arm_sin_f32(theta)*arm_sin_f32(psi);
+	q->q1 = arm_sin_f32(phi)*arm_cos_f32(theta)*arm_cos_f32(psi) -
+		arm_cos_f32(phi)*arm_sin_f32(theta)*arm_sin_f32(psi);
+	q->q2 = arm_cos_f32(phi)*arm_sin_f32(theta)*arm_cos_f32(psi) +
+		arm_sin_f32(phi)*arm_cos_f32(theta)*arm_sin_f32(psi);
+	q->q3 = arm_cos_f32(phi)*arm_cos_f32(theta)*arm_sin_f32(psi) -
+		arm_sin_f32(phi)*arm_cos_f32(theta)*arm_sin_f32(psi);
 }
 
 //in: quaterion, out: euler angle [radian]

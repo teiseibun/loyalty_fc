@@ -5,11 +5,14 @@ CC=arm-none-eabi-gcc
 OBJCOPY=arm-none-eabi-objcopy
 GDB=arm-none-eabi-gdb
 
+SRC=
+
 CFLAGS=-g -O2 -mlittle-endian -mthumb
 CFLAGS+=-mcpu=cortex-m4
 CFLAGS+=-mfpu=fpv4-sp-d16 -mfloat-abi=hard
 CFLAGS+=--specs=nano.specs --specs=nosys.specs -fno-builtin-printf
 CFLAGS+=-Wall
+CFLAGS+=-fno-strict-aliasing
 CFLAGS+=-D USE_STDPERIPH_DRIVER \
 	-D STM32F40XX \
 	-D __FPU_PRESENT=1 \
@@ -24,10 +27,14 @@ ARCH=CM4F
 
 LDLIBS+=-Wl,--start-group -lm -Wl,--end-group
 
+CFLAGS+=-I./lib/CMSIS/Include
+
 ST_LIB=./lib/STM32F4xx_StdPeriph_Driver
 CFLAGS+=-I./lib/CMSIS/ST/STM32F4xx/Include
 
-CFLAGS+=-I./lib/CMSIS/Include
+ARM_DSP=./lib/CMSIS/DSP_Lib/
+SRC+=$(ARM_DSP)/Source/FastMathFunctions/arm_cos_f32.c \
+	$(ARM_DSP)/Source/FastMathFunctions/arm_sin_f32.c
 
 CFLAGS+=-I$(ST_LIB)/inc
 
@@ -35,7 +42,7 @@ COMMON=./common
 DRIVER=./driver
 CORE=./core
 
-SRC=./lib/CMSIS/system_stm32f4xx.c
+SRC+=./lib/CMSIS/system_stm32f4xx.c
 
 CFLAGS+=-I$(ST_LIB)/inc
 SRC+=$(ST_LIB)/src/misc.c \
