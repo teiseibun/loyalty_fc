@@ -17,6 +17,24 @@ void SysTick_Handler()
 	led_toggle(LED1);
 
 	ahrs_ekf_loop();
+
+
+#if 0   //some unit tests...
+	if(uart3_tx_busy() == true) return;
+
+	attitude_t euler;
+	quat_t q;
+
+	euler.roll = deg_to_rad(30.0);
+	euler.pitch =deg_to_rad(40.0);
+	euler.yaw = deg_to_rad(50);
+
+	euler_to_quat(&euler, &q);
+	quat_normalize(&q);
+	quat_to_euler(&q, &euler);
+
+	printf("%f, %f, %f\n\r", rad_to_deg(euler.roll), rad_to_deg(euler.pitch), rad_to_deg(euler.yaw));
+#endif
 }
 
 void TIM2_IRQHandler()
