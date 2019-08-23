@@ -25,14 +25,14 @@ void ahrs_ekf_init(void)
 //in: euler angle [radian], out: quaternion
 void euler_to_quat(attitude_t *euler, quat_t *q)
 {
-	q->q0 = cos(euler->roll/2.0f)*cos(euler->pitch/2.0f)*cos(euler->yaw/2.0f) +
-		sin(euler->roll/2.0f)*sin(euler->pitch/2.0f)*sin(euler->yaw/2.0f);
-	q->q1 = sin(euler->roll/2.0f)*cos(euler->pitch/2.0f)*cos(euler->yaw/2.0f) -
-		cos(euler->roll/2.0f)*sin(euler->pitch/2.0f)*sin(euler->yaw/2.0f);
-	q->q2 = cos(euler->roll/2.0f)*sin(euler->pitch/2.0f)*cos(euler->yaw/2.0f) +
-		sin(euler->roll/2.0f)*cos(euler->pitch/2.0f)*sin(euler->yaw/2.0f);
-	q->q3 = cos(euler->roll/2.0f)*cos(euler->pitch/2.0f)*sin(euler->yaw/2.0f) -
-		sin(euler->roll/2.0f)*cos(euler->pitch/2.0f)*sin(euler->yaw/2.0f);
+	q->q0 = cos(euler->roll*0.5f)*cos(euler->pitch*0.5f)*cos(euler->yaw*0.5f) +
+		sin(euler->roll*0.5f)*sin(euler->pitch*0.5f)*sin(euler->yaw*0.5f);
+	q->q1 = sin(euler->roll*0.5f)*cos(euler->pitch*0.5f)*cos(euler->yaw*0.5f) -
+		cos(euler->roll*0.5f)*sin(euler->pitch*0.5f)*sin(euler->yaw*0.5f);
+	q->q2 = cos(euler->roll*0.5f)*sin(euler->pitch*0.5f)*cos(euler->yaw*0.5f) +
+		sin(euler->roll*0.5f)*cos(euler->pitch*0.5f)*sin(euler->yaw*0.5f);
+	q->q3 = cos(euler->roll*0.5f)*cos(euler->pitch*0.5f)*sin(euler->yaw*0.5f) -
+		sin(euler->roll*0.5f)*cos(euler->pitch*0.5f)*sin(euler->yaw*0.5f);
 }
 
 //in: quaterion, out: euler angle [radian]
