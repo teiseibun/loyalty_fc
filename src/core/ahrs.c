@@ -7,13 +7,60 @@
 #include "lpf.h"
 #include "quaternion.h"
 
+#define MAT_ALLOC(mat, row, col) \
+	arm_matrix_instance_f32 mat; \
+	float mat ## _arr[row * col]
+
+#define MAT_INIT(mat, row, col) \
+	arm_mat_init_f32(&mat, row, col, (float32_t *)mat ## _arr)
+
+#define MAT_TRANS(mat, mat_trans) \
+	arm_mat_trans_f32(mat, mat_trans)
+
+#define MAT_INV(mat, mat_inv) \
+	arm_mat_inverse_f32(mat, mat_inv); 
+
 imu_t imu;
 ahrs_t ahrs;
 
 vector3d_f_t accel_lpf_old, gyro_lpf_old;
 
+MAT_ALLOC(x, 4, 1);
+MAT_ALLOC(y, 3, 1);
+MAT_ALLOC(F, 4, 4);
+MAT_ALLOC(P, 4, 4);
+MAT_ALLOC(R, 3, 3);
+MAT_ALLOC(Q, 3, 3);
+MAT_ALLOC(H, 3, 4);
+MAT_ALLOC(K, 4, 3);
+MAT_ALLOC(FP, 4, 4);
+MAT_ALLOC(PF, 4, 4);
+//-----------------------
+MAT_ALLOC(H_trans, 4, 3);
+MAT_ALLOC(HPHR, 3, 3);
+MAT_ALLOC(HPHR_inv, 3, 3);
+MAT_ALLOC(I, 4, 4) = {1, 0, 0 ,0,
+		      0, 1, 0, 0,
+		      0, 0, 1, 0,
+		      0, 0, 0, 1};
+
 void ahrs_ekf_init(void)
 {
+	//initialize matrices
+	MAT_INIT(x, 4, 1);
+	MAT_INIT(y, 3, 1);
+	MAT_INIT(F, 4, 4);
+	MAT_INIT(P, 4, 4);
+	MAT_INIT(R, 4, 4);
+	MAT_INIT(Q, 3, 3);
+	MAT_INIT(H, 3, 4);
+	MAT_INIT(K, 4, 3);
+	//-----------------------
+	MAT_INIT(H_trans, 4, 3);
+	MAT_INIT(HPHR_inv, 3, 3);
+	MAT_INIT(FP, 4, 4);
+	MAT_INIT(PF, 4, 4);
+
 	//initialize lpf
 	mpu6050_read_unscaled_data(&imu.unscaled_accel, &imu.unscaled_gyro);
 	mpu6050_fix_bias(&imu.unscaled_accel, &imu.unscaled_gyro);
@@ -61,6 +108,9 @@ void quat_to_euler(quat_t *q, attitude_t *euler)
 
 void ahrs_ekf_loop(void)
 {
+	MAT_TRANS(&H, &H_trans);
+	MAT_INV(&HPHR, &HPHR_inv);
+
 	//read new data from sensor
 	mpu6050_read_unscaled_data(&imu.unscaled_accel, &imu.unscaled_gyro);
 	mpu6050_fix_bias(&imu.unscaled_accel, &imu.unscaled_gyro);
