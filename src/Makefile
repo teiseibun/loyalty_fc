@@ -34,7 +34,14 @@ CFLAGS+=-I./lib/CMSIS/ST/STM32F4xx/Include
 
 ARM_DSP=./lib/CMSIS/DSP_Lib/
 SRC+=$(ARM_DSP)/Source/FastMathFunctions/arm_cos_f32.c \
-	$(ARM_DSP)/Source/FastMathFunctions/arm_sin_f32.c
+	$(ARM_DSP)/Source/FastMathFunctions/arm_sin_f32.c \
+	$(ARM_DSP)/Source/MatrixFunctions/arm_mat_init_f32.c \
+	$(ARM_DSP)/Source/MatrixFunctions/arm_mat_scale_f32.c \
+	$(ARM_DSP)/Source/MatrixFunctions/arm_mat_add_f32.c \
+	$(ARM_DSP)/Source/MatrixFunctions/arm_mat_sub_f32.c \
+	$(ARM_DSP)/Source/MatrixFunctions/arm_mat_mult_f32.c \
+	$(ARM_DSP)/Source/MatrixFunctions/arm_mat_trans_f32.c \
+	$(ARM_DSP)/Source/MatrixFunctions/arm_mat_inverse_f32.c
 
 CFLAGS+=-I$(ST_LIB)/inc
 
