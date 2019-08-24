@@ -9,7 +9,7 @@
 #include "uart.h"
 #include "matrix.h"
 
-#define dt 0.0002 //500Hz = 0.002s
+#define dt 0.002 //500Hz = 0.002s
 
 imu_t imu;
 ahrs_t ahrs;
@@ -128,9 +128,9 @@ void ahr_ekf_state_predict(void)
 	_mat_(f)[6]=+0.5*dt*q3;   _mat_(f)[7]=+0.5*dt*q0;   _mat_(f)[8]=-0.5*dt*q1;
 	_mat_(f)[9]=-0.5*dt*q2;   _mat_(f)[10]=+0.5*dt*q1;  _mat_(f)[11]=+0.5*dt*q0;
 
-	_mat_(y)[0] = imu.filtered_gyro.x;
-	_mat_(y)[1] = imu.filtered_gyro.y;
-	_mat_(y)[2] = imu.filtered_gyro.z;
+	_mat_(y)[0] = deg_to_rad(imu.filtered_gyro.x);
+	_mat_(y)[1] = deg_to_rad(imu.filtered_gyro.y);
+	_mat_(y)[2] = deg_to_rad(imu.filtered_gyro.z);
 
 	MAT_MULT(&f, &y, &dx);
 	MAT_ADD(&x, &dx, &x);
