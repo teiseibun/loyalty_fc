@@ -126,8 +126,16 @@ class serial_plotter_class:
         	self.create_curve('y (moving average)', 'blue')
         	self.create_curve('z (moving average)', 'green')
         	self.show_subplot()
-
-
+        elif message_id == 3:
+         	plt.subplot(111)
+        	plt.ylabel('Var(P)')
+        	plt.ylim([-450, 450])
+        	self.create_curve('P[0][0]', 'red')
+        	self.create_curve('P[1][1]', 'blue')
+        	self.create_curve('P[2][2]', 'green')
+        	self.create_curve('P[3][3]', 'orange')
+        	self.show_subplot()
+               
     def show_graph(self):
 	ani = animation.FuncAnimation(self.figure, self.animate, np.arange(0, 200), \
 		interval=0, blit=True)
