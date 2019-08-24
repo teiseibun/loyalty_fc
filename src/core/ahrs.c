@@ -6,7 +6,6 @@
 #include "ahrs.h"
 #include "vector.h"
 #include "lpf.h"
-#include "quaternion.h"
 #include "uart.h"
 #include "matrix.h"
 
@@ -67,53 +66,48 @@ void ahrs_ekf_init(void)
 	accel_lpf_old = imu.raw_accel;
 	gyro_lpf_old = imu.raw_gyro;
 
-	quat_t q_init;
 	attitude_t att_init = {
 		.roll = 0.0f,
 		.pitch = 0.0f,
 		.yaw = 0.0f
 	};
-	euler_to_quat(&att_init, &q_init);
-	_mat_(x)[0] = q_init.q0;
-	_mat_(x)[1] = q_init.q1;
-	_mat_(x)[2] = q_init.q2;
-	_mat_(x)[3] = q_init.q3;
+	euler_to_quat(&att_init, &_mat_(x)[0]);
 }
 
 //in: euler angle [radian], out: quaternion
-void euler_to_quat(attitude_t *euler, quat_t *q)
+void euler_to_quat(attitude_t *euler, float *q)
 {
 	float phi = euler->roll * 0.5f;
 	float theta = euler->pitch * 0.5f;
 	float psi = euler->yaw * 0.5f;
 
-	q->q0 = arm_cos_f32(phi)*arm_cos_f32(theta)*arm_cos_f32(psi) +
+	q[0] = arm_cos_f32(phi)*arm_cos_f32(theta)*arm_cos_f32(psi) +
 		arm_sin_f32(phi)*arm_sin_f32(theta)*arm_sin_f32(psi);
-	q->q1 = arm_sin_f32(phi)*arm_cos_f32(theta)*arm_cos_f32(psi) -
+	q[1] = arm_sin_f32(phi)*arm_cos_f32(theta)*arm_cos_f32(psi) -
 		arm_cos_f32(phi)*arm_sin_f32(theta)*arm_sin_f32(psi);
-	q->q2 = arm_cos_f32(phi)*arm_sin_f32(theta)*arm_cos_f32(psi) +
+	q[2] = arm_cos_f32(phi)*arm_sin_f32(theta)*arm_cos_f32(psi) +
 		arm_sin_f32(phi)*arm_cos_f32(theta)*arm_sin_f32(psi);
-	q->q3 = arm_cos_f32(phi)*arm_cos_f32(theta)*arm_sin_f32(psi) -
+	q[3] = arm_cos_f32(phi)*arm_cos_f32(theta)*arm_sin_f32(psi) -
 		arm_sin_f32(phi)*arm_sin_f32(theta)*arm_cos_f32(psi);
 }
 
-void quat_normalize(quat_t *q)
+void quat_normalize(float *q)
 {
-	float sq_sum = (q->q0)*(q->q0) + (q->q1)*(q->q1) + (q->q2)*(q->q2) + (q->q3)*(q->q3);
+	float sq_sum = (q[0])*(q[0]) + (q[1])*(q[1]) + (q[2])*(q[2]) + (q[3])*(q[3]);
 	float norm;
 	arm_sqrt_f32(sq_sum, &norm);
-	q->q0 /= norm;
-	q->q1 /= norm;
-	q->q2 /= norm;
-	q->q3 /= norm;
+	q[0] /= norm;
+	q[1] /= norm;
+	q[2] /= norm;
+	q[3] /= norm;
 }
 
 //in: quaterion, out: euler angle [radian]
-void quat_to_euler(quat_t *q, attitude_t *euler)
+void quat_to_euler(float *q, attitude_t *euler)
 {
-	euler->roll = atan2(2.0*(q->q0*q->q1 + q->q2*q->q3), 1.0-2.0*(q->q1*q->q1 + q->q2*q->q2));
-	euler->pitch = asin(2.0*(q->q0*q->q2 - q->q3*q->q1));
-	euler->yaw = atan2(2.0*(q->q0*q->q3 + q->q1*q->q2), 1.0-2.0*(q->q2*q->q2 + q->q3*q->q3));
+	euler->roll = atan2(2.0*(q[0]*q[1] + q[2]*q[3]), 1.0-2.0*(q[1]*q[1] + q[2]*q[2]));
+	euler->pitch = asin(2.0*(q[0]*q[2] - q[3]*q[1]));
+	euler->yaw = atan2(2.0*(q[0]*q[3] + q[1]*q[2]), 1.0-2.0*(q[2]*q[2] + q[3]*q[3]));
 }
 
 void calc_attitude_use_accel(void)
@@ -141,29 +135,23 @@ void ahr_ekf_state_predict(void)
 	MAT_MULT(&f, &y, &dx);
 	MAT_ADD(&x, &dx, &x);
 
-#if 0
+	quat_normalize(&_mat_(x)[0]);
+
+	quat_to_euler(&_mat_(x)[0], &ahrs.attitude);
+        ahrs.attitude.roll = rad_to_deg(ahrs.attitude.roll);
+	ahrs.attitude.pitch = rad_to_deg(ahrs.attitude.pitch);
+
+#if 0   //debug print messages
 	if(uart3_tx_busy() == false) {
 		//print_matrix(_mat_(dx), 4, 1);
 		//print_matrix(_mat_(f), 4, 3);
-		//print_matrix(_mat_(dx), 4, 1);
-		print_matrix(_mat_(dx), 4, 1);
 	}
 #endif
+}
 
-	quat_t q;
-	q.q0 = _mat_(x)[0];
-	q.q1 = _mat_(x)[1];
-	q.q2 = _mat_(x)[2];
-	q.q3 = _mat_(x)[3];
-	quat_normalize(&q);
-	_mat_(x)[0] = q.q0;
-	_mat_(x)[1] = q.q1;
-	_mat_(x)[2] = q.q2;
-	_mat_(x)[3] = q.q3;
-
-	quat_to_euler(&q, &ahrs.attitude);
-        ahrs.attitude.roll = rad_to_deg(ahrs.attitude.roll);
-	ahrs.attitude.pitch = rad_to_deg(ahrs.attitude.pitch);
+void ahr_ekf_state_update(void)
+{
+	
 }
 
 void ahrs_ekf_loop(void)

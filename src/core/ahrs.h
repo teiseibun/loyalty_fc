@@ -1,7 +1,6 @@
 #ifndef __AHRS__
 #define __AHRS__
 
-#include "quaternion.h"
 #include "vector.h"
 
 #define deg_to_rad(angle) (angle * 0.01745329252)
@@ -34,9 +33,9 @@ typedef struct {
 void ahrs_ekf_init(void);
 void ahrs_ekf_loop(void);
 
-void quat_normalize(quat_t *q);
+void quat_normalize(float *q);
 
-void euler_to_quat(attitude_t *euler, quat_t *q);
-void quat_to_euler(quat_t *q, attitude_t *euler);
+void euler_to_quat(attitude_t *euler, float *q);
+void quat_to_euler(float *q, attitude_t *euler);
 
 #endif
