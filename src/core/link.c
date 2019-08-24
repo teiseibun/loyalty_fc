@@ -4,10 +4,13 @@
 #include "uart.h"
 #include "link.h"
 #include "vector.h"
+#include "matrix.h"
 #include "ahrs.h"
 
 extern imu_t imu;
 extern ahrs_t ahrs;
+
+extern float _mat_(P)[4 * 4];
 
 int pack_float(float *data_float, uint8_t *byte_to_sent)
 {
@@ -89,6 +92,21 @@ void send_attitude_imu_message(void)
 	payload_size += pack_attitude(&ahrs.attitude, payload + payload_size);
 	payload_size += pack_vector3d(&imu.filtered_accel, payload + payload_size);
 	payload_size += pack_vector3d(&imu.filtered_gyro, payload + payload_size);
+
+	send_onboard_data(payload, payload_size);
+}
+
+void send_ekf_message(void)
+{
+	uint8_t payload[512] = {0}; //~64 float
+	int payload_size = 3; //reserved for header message
+
+	payload[2] = MESSAGE_ID_EKF;
+
+	payload_size += pack_float(&_mat_(P)[0], payload + payload_size);
+	payload_size += pack_float(&_mat_(P)[5], payload + payload_size);
+	payload_size += pack_float(&_mat_(P)[10], payload + payload_size);
+	payload_size += pack_float(&_mat_(P)[15], payload + payload_size);
 
 	send_onboard_data(payload, payload_size);
 }

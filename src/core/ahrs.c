@@ -178,6 +178,7 @@ void ahr_ekf_state_predict(void)
 	MAT_ADD(&FP, &PFt, &FP_PFt_Q);          //calculate F*P + P*F'
 	MAT_ADD(&FP_PFt_Q, &Q, &FP_PFt_Q);      //calculate F*P + P*F + Q
 	MAT_MULT(&dt_4x4, &FP_PFt_Q, &FP_PFt_Q) //calculate dt * (F*P + P*F + Q)
+	MAT_ADD(&P, &FP_PFt_Q, &P);             //calculate P = P + dt * (F*P + P*F + Q)
 
 	quat_to_euler(&_mat_(x)[0], &ahrs.attitude);
 	ahrs.attitude.roll = rad_to_deg(ahrs.attitude.roll);
