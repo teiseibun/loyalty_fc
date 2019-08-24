@@ -102,7 +102,31 @@ class serial_plotter_class:
         	self.create_curve('pitch', 'blue')		
         	self.create_curve('yaw', 'green')		
         	self.show_subplot()
-               
+        elif message_id == 2:          
+                plt.subplot(311)
+        	plt.ylabel('attitude [deg]')
+        	plt.ylim([-450, 450])
+        	self.create_curve('wx', 'red')
+        	self.create_curve('pitch', 'blue')
+        	self.create_curve('yaw', 'green')
+        	self.show_subplot()
+
+                plt.subplot(312)
+        	plt.ylabel('accel [m/s^2]')
+        	plt.ylim([-1.0, 2.0])
+        	self.create_curve('x (moving average)', 'red')
+        	self.create_curve('y (moving average)', 'blue')
+        	self.create_curve('z (moving average)', 'green')
+        	self.show_subplot()
+
+        	plt.subplot(313)
+        	plt.ylabel('gyro [deg/s]')
+        	plt.ylim([-450, 450])
+        	self.create_curve('x (moving average)', 'red')
+        	self.create_curve('y (moving average)', 'blue')
+        	self.create_curve('z (moving average)', 'green')
+        	self.show_subplot()
+
 
     def show_graph(self):
 	ani = animation.FuncAnimation(self.figure, self.animate, np.arange(0, 200), \
