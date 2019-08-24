@@ -20,20 +20,16 @@ MAT_ALLOC(x, 4, 1);
 MAT_ALLOC(w, 3, 1);
 MAT_ALLOC(y, 3, 1);
 MAT_ALLOC(f, 4, 3);
-MAT_ALLOC(F, 4, 4);
-MAT_ALLOC(P, 4, 4);
-MAT_ALLOC(R, 3, 3);
-MAT_ALLOC(Q, 3, 3);
-MAT_ALLOC(H, 3, 4);
+MAT_ALLOC(h_x, 3, 1);
+MAT_ALLOC(resid, 3, 1);
+//MAT_ALLOC(F, 4, 4);
+//MAT_ALLOC(P, 4, 4);
+//MAT_ALLOC(R, 3, 3);
+//MAT_ALLOC(Q, 3, 3);
+MAT_ALLOC(H, 4, 3);
 MAT_ALLOC(K, 4, 3);
-MAT_ALLOC(FP, 4, 4);
-MAT_ALLOC(PF, 4, 4);
 //-----------------------
-MAT_ALLOC(x_pred, 4, 1);
 MAT_ALLOC(dx, 4, 1);
-MAT_ALLOC(H_trans, 4, 3);
-MAT_ALLOC(HPHR, 3, 3);
-MAT_ALLOC(HPHR_inv, 3, 3);
 MAT_ALLOC(I, 4, 4) = {1, 0, 0 ,0,
 		      0, 1, 0, 0,
 		      0, 0, 1, 0,
@@ -46,19 +42,17 @@ void ahrs_ekf_init(void)
 	MAT_INIT(w, 3, 1);
 	MAT_INIT(y, 3, 1);
 	MAT_INIT(f, 4, 3);
-	MAT_INIT(F, 4, 4);
-	MAT_INIT(P, 4, 4);
-	MAT_INIT(R, 4, 4);
-	MAT_INIT(Q, 3, 3);
-	MAT_INIT(H, 3, 4);
+	MAT_INIT(h_x, 3, 1);
+	MAT_INIT(resid, 3, 1);
+//	MAT_INIT(F, 4, 4);
+//	MAT_INIT(P, 4, 4);
+//	MAT_INIT(R, 4, 4);
+//	MAT_INIT(Q, 3, 3);
+	MAT_INIT(H, 4, 3);
 	MAT_INIT(K, 4, 3);
 	//-----------------------
 	MAT_INIT(dx, 4, 1);
-	MAT_INIT(x_pred, 4, 1);
-	MAT_INIT(H_trans, 4, 3);
-	MAT_INIT(HPHR_inv, 3, 3);
-	MAT_INIT(FP, 4, 4);
-	MAT_INIT(PF, 4, 4);
+	MAT_INIT(I, 4, 4);
 
 	//initialize lpf
 	mpu6050_read_unscaled_data(&imu.unscaled_accel, &imu.unscaled_gyro);
@@ -139,9 +133,11 @@ void ahr_ekf_state_predict(void)
 
 	quat_normalize(&_mat_(x)[0]);
 
+#if 1
 	quat_to_euler(&_mat_(x)[0], &ahrs.attitude);
         ahrs.attitude.roll = rad_to_deg(ahrs.attitude.roll);
 	ahrs.attitude.pitch = rad_to_deg(ahrs.attitude.pitch);
+#endif
 
 #if 0   //debug print messages
 	if(uart3_tx_busy() == false) {
@@ -153,7 +149,49 @@ void ahr_ekf_state_predict(void)
 
 void ahr_ekf_state_update(void)
 {
-	
+	float q0 = _mat_(x)[0];
+	float q1 = _mat_(x)[1];
+	float q2 = _mat_(x)[2];
+	float q3 = _mat_(x)[3];
+
+	//predicted estimation
+	_mat_(h_x)[0] = 2.0*(q1*q3 - q0*q2);
+	_mat_(h_x)[1] = 2.0*(q2*q3 + q0*q1);
+	_mat_(h_x)[2] = q0*q0 + q1*q1 - q2*q2 + q3*q3;
+
+	//sensor estimation
+	//_mat_(y)[0] = imu.filtered_accel.x;
+	//_mat_(y)[1] = imu.filtered_accel.y;
+	//_mat_(y)[2] = imu.filtered_accel.z;
+
+	//residual = prediction - sensor estimation
+	//MAT_SUB(&h_x, &y, &resid);
+
+#if 0
+	//debug print messages
+        if(uart3_tx_busy() == false) {
+		//print_matrix(_mat_(x), 4, 1);	
+		//print_matrix(_mat_(h_x), 3, 1);	
+		//print_matrix(_mat_(H), 4, 3);		
+	}
+#endif
+
+	//kalman gain
+	_mat_(H)[0]=-2.0*q2;  _mat_(H)[1]=+2.0*q3;  _mat_(H)[2]=-2.0*q0;   _mat_(H)[3]=+2.0*q1;
+	_mat_(H)[4]=+2.0*q1;  _mat_(H)[5]=+2.0*q0;  _mat_(H)[6]=+2.0*q3;   _mat_(H)[7]=+2.0*q2;
+	_mat_(H)[8]=+2.0*q0;  _mat_(H)[9]=-2.0*q1;  _mat_(H)[10]=-2.0*q2;  _mat_(H)[11]=+2.0*q3;
+	//MAT_INV(&H, &H);
+
+	//update inovation and prediction
+	//MAT_MULT(&K, &resid, &dx);
+	//MAT_ADD(&x, &dx, &x);
+
+#if 0
+	//debug print messages
+        if(uart3_tx_busy() == false) {
+		//print_matrix(_mat_(H), 4, 3);		
+	}
+#endif
 }
 
 void ahrs_ekf_loop(void)
@@ -169,5 +207,6 @@ void ahrs_ekf_loop(void)
 	lpf_ema_vector3d(&imu.raw_gyro, &gyro_lpf_old, &imu.filtered_gyro, 0.03);
 
 	ahr_ekf_state_predict();
-	calc_attitude_use_accel();
+	ahr_ekf_state_update();
+	//calc_attitude_use_accel();
 }
