@@ -38,4 +38,6 @@ void quat_normalize(float *q);
 void euler_to_quat(attitude_t *euler, float *q);
 void quat_to_euler(float *q, attitude_t *euler);
 
+void calc_attitude_use_accel(void);
+
 #endif

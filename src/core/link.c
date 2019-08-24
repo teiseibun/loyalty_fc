@@ -117,7 +117,7 @@ void telemetry_loop()
 		return;
 
 	//send_imu_message();
-	//send_attitude_message();
-	send_attitude_imu_message();
+	send_attitude_message();
+	//send_attitude_imu_message();
 	//send_ekf_message();
 }

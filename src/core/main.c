@@ -14,9 +14,11 @@ volatile int cnt = 100;
 
 void SysTick_Handler()
 {
-	led_toggle(LED1);
+	led_on(LED1);
 
 	ahrs_ekf_loop();
+
+	led_off(LED1);
 }
 
 void TIM2_IRQHandler()

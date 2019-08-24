@@ -28,12 +28,19 @@ MAT_ALLOC(P, 4, 4);
 MAT_ALLOC(Ft, 4, 4);
 MAT_ALLOC(FP, 4, 4);
 MAT_ALLOC(PFt, 4, 4);
-MAT_ALLOC(FP_PFt_Q, 4, 4); //(FP + PF' + Q)
+MAT_ALLOC(FP_PFt_Q, 4, 4);
 MAT_ALLOC(dP, 4, 4);
 MAT_ALLOC(R, 3, 3);
 MAT_ALLOC(Q, 4, 4);
 MAT_ALLOC(H, 4, 3);
+MAT_ALLOC(Ht, 4, 3);
+MAT_ALLOC(PHt, 4, 3);
+MAT_ALLOC(HPHt, 3, 3);
+MAT_ALLOC(HPHt_R, 3, 3);
+MAT_ALLOC(Si, 4, 3);
 MAT_ALLOC(K, 4, 3);
+MAT_ALLOC(KH, 4, 4);
+MAT_ALLOC(I_KH, 4, 4);
 MAT_ALLOC(I, 4, 4) = {1, 0, 0 ,0,
 		      0, 1, 0, 0,
 		      0, 0, 1, 0,
@@ -45,7 +52,7 @@ MAT_ALLOC(dt_4x4, 4, 4) = {dt, 0, 0 ,0,
 
 void ahrs_ekf_init(void)
 {
-	//initialize matrice
+	//initialize matrices
 	MAT_INIT(x, 4, 1);
 	MAT_INIT(dx, 4, 1);
 	MAT_INIT(w, 3, 1);
@@ -63,18 +70,28 @@ void ahrs_ekf_init(void)
 	MAT_INIT(R, 3, 3);
 	MAT_INIT(Q, 4, 4);
 	MAT_INIT(H, 4, 3);
+	MAT_INIT(Ht, 4, 3);
+	MAT_INIT(PHt, 4, 3);
+	MAT_INIT(HPHt, 3, 3);
+	MAT_INIT(HPHt_R, 3, 3);
+	MAT_INIT(Si, 4, 3);
 	MAT_INIT(K, 4, 3);
+	MAT_INIT(KH, 4, 4);
+	MAT_INIT(I_KH, 4, 4);
 	MAT_INIT(I, 4, 4);
 	MAT_INIT(dt_4x4, 4, 4);
 
-	_mat_(P)[0] = 0.05;
-	_mat_(P)[5] = 0.05;
-	_mat_(P)[10] = 0.05;
-	_mat_(P)[15] = 0.05;
-	_mat_(Q)[0] = 0.05;
-	_mat_(Q)[5] = 0.05;
-	_mat_(Q)[10] = 0.05;
-	_mat_(Q)[15] = 0.05;
+	_mat_(P)[0] = 0.05;  //P[0][0]
+	_mat_(P)[5] = 0.05;  //P[1][1]
+	_mat_(P)[10] = 0.05; //P[2][2]
+	_mat_(P)[15] = 0.05; //P[3][3]
+	_mat_(Q)[0] = 0.05;  //Q[4][4]
+	_mat_(Q)[5] = 0.05;  //Q[5][5]
+	_mat_(Q)[10] = 0.05; //Q[6][6]
+	_mat_(Q)[15] = 0.05; //Q[7][7]
+	_mat_(R)[0] = deg_to_rad(5.0*5.0); //R[0][0]
+	_mat_(R)[4] = deg_to_rad(5.0*5.0); //R[1][1]
+	_mat_(R)[8] = deg_to_rad(5.0*5.0); //R[2][2]
 
 	//initialize lpf
 	mpu6050_read_unscaled_data(&imu.unscaled_accel, &imu.unscaled_gyro);
@@ -84,9 +101,11 @@ void ahrs_ekf_init(void)
 	accel_lpf_old = imu.raw_accel;
 	gyro_lpf_old = imu.raw_gyro;
 
+	calc_attitude_use_accel();
+
 	attitude_t att_init = {
-		.roll = 0.0f,
-		.pitch = 0.0f,
+		.roll = ahrs.attitude.roll,
+		.pitch = ahrs.attitude.pitch,
 		.yaw = 0.0f
 	};
 	euler_to_quat(&att_init, &_mat_(x)[0]);
@@ -180,9 +199,9 @@ void ahr_ekf_state_predict(void)
 	MAT_MULT(&dt_4x4, &FP_PFt_Q, &FP_PFt_Q) //calculate dt * (F*P + P*F + Q)
 	MAT_ADD(&P, &FP_PFt_Q, &P);             //calculate P = P + dt * (F*P + P*F + Q)
 
-	quat_to_euler(&_mat_(x)[0], &ahrs.attitude);
-	ahrs.attitude.roll = rad_to_deg(ahrs.attitude.roll);
-	ahrs.attitude.pitch = rad_to_deg(ahrs.attitude.pitch);
+	//quat_to_euler(&_mat_(x)[0], &ahrs.attitude);
+	//ahrs.attitude.roll = rad_to_deg(ahrs.attitude.roll);
+	//ahrs.attitude.pitch = rad_to_deg(ahrs.attitude.pitch);
 }
 
 void ahr_ekf_state_update(void)
@@ -203,7 +222,7 @@ void ahr_ekf_state_update(void)
 	_mat_(y)[2] = imu.filtered_accel.z;
 
 	//residual = prediction - sensor estimation
-	MAT_SUB(&h_x, &y, &resid);
+	MAT_SUB(&y, &h_x, &resid);
 
 #if 0
 	//debug print messages
@@ -219,13 +238,24 @@ void ahr_ekf_state_update(void)
 	_mat_(H)[0]=-2.0*q2;  _mat_(H)[1]=+2.0*q3;  _mat_(H)[2]=-2.0*q0;   _mat_(H)[3]=+2.0*q1;
 	_mat_(H)[4]=+2.0*q1;  _mat_(H)[5]=+2.0*q0;  _mat_(H)[6]=+2.0*q3;   _mat_(H)[7]=+2.0*q2;
 	_mat_(H)[8]=+2.0*q0;  _mat_(H)[9]=-2.0*q1;  _mat_(H)[10]=-2.0*q2;  _mat_(H)[11]=+2.0*q3;
-	//MAT_INV(&H, &H);
+
+	MAT_TRANS(&H, &Ht);
+	MAT_MULT(&P, &Ht, &PHt);
+	MAT_MULT(&H, &PHt, &HPHt);
+	MAT_ADD(&HPHt, &R, &HPHt_R);
+	MAT_INV(&HPHt_R, &Si);
+	MAT_MULT(&PHt, &Si, &K);
 
 	//update inovation and prediction
 	MAT_MULT(&K, &resid, &dx);
 	MAT_ADD(&x, &dx, &x);
 	quat_normalize(&_mat_(x)[0]);
 
+	MAT_MULT(&K, &H, &KH);
+	MAT_SUB(&I, &KH, &I_KH);
+	MAT_MULT(&P, &I_KH, &P);
+
+	quat_to_euler(&_mat_(x)[0], &ahrs.attitude);
         ahrs.attitude.roll = rad_to_deg(ahrs.attitude.roll);
 	ahrs.attitude.pitch = rad_to_deg(ahrs.attitude.pitch);
 }
@@ -243,6 +273,6 @@ void ahrs_ekf_loop(void)
 	lpf_ema_vector3d(&imu.raw_gyro, &gyro_lpf_old, &imu.filtered_gyro, 0.03);
 
 	ahr_ekf_state_predict();
-	//ahr_ekf_state_update();
+	ahr_ekf_state_update();
 	//calc_attitude_use_accel();
 }
