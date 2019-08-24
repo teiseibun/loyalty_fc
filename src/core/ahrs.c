@@ -135,8 +135,8 @@ void ahr_ekf_state_predict(void)
 
 #if 1
 	quat_to_euler(&_mat_(x)[0], &ahrs.attitude);
-        ahrs.attitude.roll = rad_to_deg(ahrs.attitude.roll);
-	ahrs.attitude.pitch = rad_to_deg(ahrs.attitude.pitch);
+        //ahrs.attitude.roll = rad_to_deg(ahrs.attitude.roll);
+	//ahrs.attitude.pitch = rad_to_deg(ahrs.attitude.pitch);
 #endif
 
 #if 0   //debug print messages
@@ -157,20 +157,21 @@ void ahr_ekf_state_update(void)
 	//predicted estimation
 	_mat_(h_x)[0] = 2.0*(q1*q3 - q0*q2);
 	_mat_(h_x)[1] = 2.0*(q2*q3 + q0*q1);
-	_mat_(h_x)[2] = q0*q0 + q1*q1 - q2*q2 + q3*q3;
+	_mat_(h_x)[2] = q0*q0 - q1*q1 - q2*q2 + q3*q3;
 
 	//sensor estimation
-	//_mat_(y)[0] = imu.filtered_accel.x;
-	//_mat_(y)[1] = imu.filtered_accel.y;
-	//_mat_(y)[2] = imu.filtered_accel.z;
+	_mat_(y)[0] = imu.filtered_accel.x;
+	_mat_(y)[1] = imu.filtered_accel.y;
+	_mat_(y)[2] = imu.filtered_accel.z;
 
 	//residual = prediction - sensor estimation
-	//MAT_SUB(&h_x, &y, &resid);
+	MAT_SUB(&h_x, &y, &resid);
 
 #if 0
 	//debug print messages
         if(uart3_tx_busy() == false) {
 		//print_matrix(_mat_(x), 4, 1);	
+		//print_matrix(_mat_(y), 3, 1);	
 		//print_matrix(_mat_(h_x), 3, 1);	
 		//print_matrix(_mat_(H), 4, 3);		
 	}
@@ -183,13 +184,17 @@ void ahr_ekf_state_update(void)
 	//MAT_INV(&H, &H);
 
 	//update inovation and prediction
-	//MAT_MULT(&K, &resid, &dx);
-	//MAT_ADD(&x, &dx, &x);
+	MAT_MULT(&K, &resid, &dx);
+	MAT_ADD(&x, &dx, &x);
+	quat_normalize(&_mat_(x)[0]);
+
+        ahrs.attitude.roll = rad_to_deg(ahrs.attitude.roll);
+	ahrs.attitude.pitch = rad_to_deg(ahrs.attitude.pitch);
 
 #if 0
 	//debug print messages
         if(uart3_tx_busy() == false) {
-		//print_matrix(_mat_(H), 4, 3);		
+		print_matrix(_mat_(H), 4, 3);		
 	}
 #endif
 }
