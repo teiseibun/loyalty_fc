@@ -80,7 +80,7 @@ class serial_plotter_class:
         	self.show_subplot()
 
         	plt.subplot(413)
-        	plt.ylabel('gyro [degree/s]')
+        	plt.ylabel('gyro [deg/s]')
         	plt.ylim([-450, 450])
         	self.create_curve('x (raw)', 'red')		
         	self.create_curve('y (raw)', 'blue')		
@@ -88,7 +88,7 @@ class serial_plotter_class:
         	self.show_subplot()
 
                 plt.subplot(414)
-        	plt.ylabel('gyro [degree/s]')
+        	plt.ylabel('gyro [deg/s]')
         	plt.ylim([-450, 450])
         	self.create_curve('x (moving average)', 'red')		
         	self.create_curve('y (moving average)', 'blue')		
@@ -96,7 +96,7 @@ class serial_plotter_class:
         	self.show_subplot()
         elif message_id == 1:
                 plt.subplot(111)
-        	plt.ylabel('gyro [degree/s]')
+        	plt.ylabel('gyro [deg/s]')
         	plt.ylim([-450, 450])
         	self.create_curve('roll', 'red')		
         	self.create_curve('pitch', 'blue')		
@@ -106,7 +106,7 @@ class serial_plotter_class:
                 plt.subplot(311)
         	plt.ylabel('attitude [deg]')
         	plt.ylim([-450, 450])
-        	self.create_curve('wx', 'red')
+        	self.create_curve('roll', 'red')
         	self.create_curve('pitch', 'blue')
         	self.create_curve('yaw', 'green')
         	self.show_subplot()
