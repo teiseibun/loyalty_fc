@@ -17,6 +17,7 @@ ahrs_t ahrs;
 vector3d_f_t accel_lpf_old, gyro_lpf_old;
 
 MAT_ALLOC(x, 4, 1);
+MAT_ALLOC(w, 3, 1);
 MAT_ALLOC(y, 3, 1);
 MAT_ALLOC(f, 4, 3);
 MAT_ALLOC(F, 4, 4);
@@ -42,6 +43,7 @@ void ahrs_ekf_init(void)
 {
 	//initialize matrices
 	MAT_INIT(x, 4, 1);
+	MAT_INIT(w, 3, 1);
 	MAT_INIT(y, 3, 1);
 	MAT_INIT(f, 4, 3);
 	MAT_INIT(F, 4, 4);
@@ -128,11 +130,11 @@ void ahr_ekf_state_predict(void)
 	_mat_(f)[6]=+0.5*dt*q3;   _mat_(f)[7]=+0.5*dt*q0;   _mat_(f)[8]=-0.5*dt*q1;
 	_mat_(f)[9]=-0.5*dt*q2;   _mat_(f)[10]=+0.5*dt*q1;  _mat_(f)[11]=+0.5*dt*q0;
 
-	_mat_(y)[0] = deg_to_rad(imu.filtered_gyro.x);
-	_mat_(y)[1] = deg_to_rad(imu.filtered_gyro.y);
-	_mat_(y)[2] = deg_to_rad(imu.filtered_gyro.z);
+	_mat_(w)[0] = deg_to_rad(imu.filtered_gyro.x);
+	_mat_(w)[1] = deg_to_rad(imu.filtered_gyro.y);
+	_mat_(w)[2] = deg_to_rad(imu.filtered_gyro.z);
 
-	MAT_MULT(&f, &y, &dx);
+	MAT_MULT(&f, &w, &dx);
 	MAT_ADD(&x, &dx, &x);
 
 	quat_normalize(&_mat_(x)[0]);
@@ -167,5 +169,5 @@ void ahrs_ekf_loop(void)
 	lpf_ema_vector3d(&imu.raw_gyro, &gyro_lpf_old, &imu.filtered_gyro, 0.03);
 
 	ahr_ekf_state_predict();
-	//calc_attitude_use_accel();
+	calc_attitude_use_accel();
 }
