@@ -102,19 +102,23 @@ $(STARTUP_OBJ): $(STARTUP)
 $(EXECUTABLE):$(SRC) $(STARTUP_OBJ)
 	$(CC) $(CFLAGS) $^ $(LDLIBS) -o $@
 
-#Make clean
 clean:
 	rm -rf $(EXECUTABLE)
 	rm -rf $(BIN_IMAGE)
-#Make flash
-flash:
-	st-flash write $(BIN_IMAGE) 0x8000000
 
-#Make openocd
+flash:
+	openocd -f interface/stlink-v2.cfg \
+	-f target/stm32f4x_stlink.cfg \
+	-c "init" \
+	-c "reset init" \
+	-c "halt" \
+	-c "flash write_image erase $(EXECUTABLE)" \
+	-c "verify_image $(EXECUTABLE)" \
+	-c "reset run" -c shutdown
+
 openocd:
 	openocd -s /opt/openocd/share/openocd/scripts/ -f ./debug/openocd.cfg
 
-#Make cgdb
 gdbauto:
 	cgdb -d $(GDB) -x ./debug/openocd_gdb.gdb
 
