@@ -17,42 +17,64 @@ ahrs_t ahrs;
 vector3d_f_t accel_lpf_old, gyro_lpf_old;
 
 MAT_ALLOC(x, 4, 1);
+MAT_ALLOC(dx, 4, 1);
 MAT_ALLOC(w, 3, 1);
 MAT_ALLOC(y, 3, 1);
 MAT_ALLOC(f, 4, 3);
 MAT_ALLOC(h_x, 3, 1);
 MAT_ALLOC(resid, 3, 1);
-//MAT_ALLOC(F, 4, 4);
-//MAT_ALLOC(P, 4, 4);
-//MAT_ALLOC(R, 3, 3);
-//MAT_ALLOC(Q, 3, 3);
+MAT_ALLOC(F, 4, 4);
+MAT_ALLOC(P, 4, 4);
+MAT_ALLOC(Ft, 4, 4);
+MAT_ALLOC(FP, 4, 4);
+MAT_ALLOC(PFt, 4, 4);
+MAT_ALLOC(FP_PFt_Q, 4, 4); //(FP + PF' + Q)
+MAT_ALLOC(dP, 4, 4);
+MAT_ALLOC(R, 3, 3);
+MAT_ALLOC(Q, 4, 4);
 MAT_ALLOC(H, 4, 3);
 MAT_ALLOC(K, 4, 3);
-//-----------------------
-MAT_ALLOC(dx, 4, 1);
 MAT_ALLOC(I, 4, 4) = {1, 0, 0 ,0,
 		      0, 1, 0, 0,
 		      0, 0, 1, 0,
 		      0, 0, 0, 1};
+MAT_ALLOC(dt_4x4, 4, 4) = {dt, 0, 0 ,0,
+		           0, dt, 0, 0,
+		           0, 0, dt, 0,
+		           0, 0, 0, dt};
 
 void ahrs_ekf_init(void)
 {
-	//initialize matrices
+	//initialize matrice
 	MAT_INIT(x, 4, 1);
+	MAT_INIT(dx, 4, 1);
 	MAT_INIT(w, 3, 1);
 	MAT_INIT(y, 3, 1);
 	MAT_INIT(f, 4, 3);
 	MAT_INIT(h_x, 3, 1);
 	MAT_INIT(resid, 3, 1);
-//	MAT_INIT(F, 4, 4);
-//	MAT_INIT(P, 4, 4);
-//	MAT_INIT(R, 4, 4);
-//	MAT_INIT(Q, 3, 3);
+	MAT_INIT(F, 4, 4);
+	MAT_INIT(P, 4, 4);
+	MAT_INIT(Ft, 4, 4);
+	MAT_INIT(FP, 4, 4);
+	MAT_INIT(PFt, 4, 4);
+	MAT_INIT(FP_PFt_Q, 4, 4);
+	MAT_INIT(dP, 4, 4);
+	MAT_INIT(R, 3, 3);
+	MAT_INIT(Q, 4, 4);
 	MAT_INIT(H, 4, 3);
 	MAT_INIT(K, 4, 3);
-	//-----------------------
-	MAT_INIT(dx, 4, 1);
 	MAT_INIT(I, 4, 4);
+	MAT_INIT(dt_4x4, 4, 4);
+
+	_mat_(P)[0] = 0.05;
+	_mat_(P)[5] = 0.05;
+	_mat_(P)[10] = 0.05;
+	_mat_(P)[15] = 0.05;
+	_mat_(Q)[0] = 0.05;
+	_mat_(Q)[5] = 0.05;
+	_mat_(Q)[10] = 0.05;
+	_mat_(Q)[15] = 0.05;
 
 	//initialize lpf
 	mpu6050_read_unscaled_data(&imu.unscaled_accel, &imu.unscaled_gyro);
@@ -133,18 +155,33 @@ void ahr_ekf_state_predict(void)
 
 	quat_normalize(&_mat_(x)[0]);
 
-#if 1
-	quat_to_euler(&_mat_(x)[0], &ahrs.attitude);
-        //ahrs.attitude.roll = rad_to_deg(ahrs.attitude.roll);
-	//ahrs.attitude.pitch = rad_to_deg(ahrs.attitude.pitch);
-#endif
-
 #if 0   //debug print messages
 	if(uart3_tx_busy() == false) {
 		//print_matrix(_mat_(dx), 4, 1);
 		//print_matrix(_mat_(f), 4, 3);
 	}
 #endif
+
+	//P = P + dt * (FP + PF' + Q)
+	float wx = _mat_(w)[0];
+	float wy = _mat_(w)[1];
+	float wz = _mat_(w)[2];
+
+	_mat_(F)[0]=0.0;      _mat_(F)[1]=-0.5*wx;  _mat_(F)[2]=-0.5*wy;   _mat_(F)[3]=-0.5*wz;
+	_mat_(F)[4]=0.5*wx;   _mat_(F)[5]=0.0;      _mat_(F)[6]=0.5*wz;    _mat_(F)[7]=-0.5*wy;
+	_mat_(F)[8]=0.5*wy;   _mat_(F)[9]=-0.5*wz;  _mat_(F)[10]=0.0;      _mat_(F)[11]=0.5*wx;
+	_mat_(F)[12]=0.5*wz;  _mat_(F)[13]=0.5*wy;  _mat_(F)[14]=-0.5*wx;  _mat_(F)[15]=0.0;
+
+	MAT_TRANS(&F, &Ft);                     //calculate F'
+	MAT_MULT(&F, &P, &FP);                  //calculate F*P
+	MAT_MULT(&P, &Ft, &PFt);                //calculate P*F'
+	MAT_ADD(&FP, &PFt, &FP_PFt_Q);          //calculate F*P + P*F'
+	MAT_ADD(&FP_PFt_Q, &Q, &FP_PFt_Q);      //calculate F*P + P*F + Q
+	MAT_MULT(&dt_4x4, &FP_PFt_Q, &FP_PFt_Q) //calculate dt * (F*P + P*F + Q)
+
+	quat_to_euler(&_mat_(x)[0], &ahrs.attitude);
+	ahrs.attitude.roll = rad_to_deg(ahrs.attitude.roll);
+	ahrs.attitude.pitch = rad_to_deg(ahrs.attitude.pitch);
 }
 
 void ahr_ekf_state_update(void)
@@ -190,13 +227,6 @@ void ahr_ekf_state_update(void)
 
         ahrs.attitude.roll = rad_to_deg(ahrs.attitude.roll);
 	ahrs.attitude.pitch = rad_to_deg(ahrs.attitude.pitch);
-
-#if 0
-	//debug print messages
-        if(uart3_tx_busy() == false) {
-		print_matrix(_mat_(H), 4, 3);		
-	}
-#endif
 }
 
 void ahrs_ekf_loop(void)
@@ -212,6 +242,6 @@ void ahrs_ekf_loop(void)
 	lpf_ema_vector3d(&imu.raw_gyro, &gyro_lpf_old, &imu.filtered_gyro, 0.03);
 
 	ahr_ekf_state_predict();
-	ahr_ekf_state_update();
+	//ahr_ekf_state_update();
 	//calc_attitude_use_accel();
 }
