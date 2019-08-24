@@ -78,20 +78,20 @@ void ahrs_ekf_init(void)
 	MAT_INIT(K, 4, 3);
 	MAT_INIT(KH, 4, 4);
 	MAT_INIT(I_KH, 4, 4);
-	MAT_INIT(I, 4, 4);
+	MAT_INIT(I, 4, 4); 
 	MAT_INIT(dt_4x4, 4, 4);
 
-	_mat_(P)[0] = 0.05;  //P[0][0]
-	_mat_(P)[5] = 0.05;  //P[1][1]
-	_mat_(P)[10] = 0.05; //P[2][2]
-	_mat_(P)[15] = 0.05; //P[3][3]
-	_mat_(Q)[0] = 0.05;  //Q[4][4]
-	_mat_(Q)[5] = 0.05;  //Q[5][5]
-	_mat_(Q)[10] = 0.05; //Q[6][6]
-	_mat_(Q)[15] = 0.05; //Q[7][7]
-	_mat_(R)[0] = deg_to_rad(5.0*5.0); //R[0][0]
-	_mat_(R)[4] = deg_to_rad(5.0*5.0); //R[1][1]
-	_mat_(R)[8] = deg_to_rad(5.0*5.0); //R[2][2]
+	_mat_(P)[0] = 0.1;  //P[0][0]
+	_mat_(P)[5] = 0.1;  //P[1][1]
+	_mat_(P)[10] = 0.1; //P[2][2]
+	_mat_(P)[15] = 0.1; //P[3][3]
+	_mat_(Q)[0] = 0.01;  //Q[4][4]
+	_mat_(Q)[5] = 0.01;  //Q[5][5]
+	_mat_(Q)[10] = 0.01; //Q[6][6]
+	_mat_(Q)[15] = 0.01; //Q[7][7]
+	_mat_(R)[0] = deg_to_rad(0.01); //R[0][0]
+	_mat_(R)[4] = deg_to_rad(0.01); //R[1][1]
+	_mat_(R)[8] = deg_to_rad(0.01); //R[2][2]
 
 	//initialize lpf
 	mpu6050_read_unscaled_data(&imu.unscaled_accel, &imu.unscaled_gyro);
@@ -247,13 +247,13 @@ void ahr_ekf_state_update(void)
 	MAT_MULT(&PHt, &Si, &K);
 
 	//update inovation and prediction
-	MAT_MULT(&K, &resid, &dx);
-	MAT_ADD(&x, &dx, &x);
-	quat_normalize(&_mat_(x)[0]);
+	//MAT_MULT(&K, &resid, &dx);
+	//MAT_ADD(&x, &dx, &x);
+	//quat_normalize(&_mat_(x)[0]);
 
-	MAT_MULT(&K, &H, &KH);
-	MAT_SUB(&I, &KH, &I_KH);
-	MAT_MULT(&P, &I_KH, &P);
+	//MAT_MULT(&K, &H, &KH);
+	//MAT_SUB(&I, &KH, &I_KH);
+	//MAT_MULT(&P, &I_KH, &P);
 
 	quat_to_euler(&_mat_(x)[0], &ahrs.attitude);
         ahrs.attitude.roll = rad_to_deg(ahrs.attitude.roll);

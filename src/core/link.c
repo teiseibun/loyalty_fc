@@ -11,6 +11,7 @@ extern imu_t imu;
 extern ahrs_t ahrs;
 
 extern float _mat_(P)[4 * 4];
+extern float _mat_(K)[4 * 4];
 
 int pack_float(float *data_float, uint8_t *byte_to_sent)
 {
@@ -107,6 +108,10 @@ void send_ekf_message(void)
 	payload_size += pack_float(&_mat_(P)[5], payload + payload_size);
 	payload_size += pack_float(&_mat_(P)[10], payload + payload_size);
 	payload_size += pack_float(&_mat_(P)[15], payload + payload_size);
+	payload_size += pack_float(&_mat_(K)[0], payload + payload_size);
+	payload_size += pack_float(&_mat_(K)[5], payload + payload_size);
+	payload_size += pack_float(&_mat_(K)[10], payload + payload_size);
+	payload_size += pack_float(&_mat_(K)[15], payload + payload_size);
 
 	send_onboard_data(payload, payload_size);
 }
@@ -117,7 +122,7 @@ void telemetry_loop()
 		return;
 
 	//send_imu_message();
-	send_attitude_message();
+	//send_attitude_message();
 	//send_attitude_imu_message();
-	//send_ekf_message();
+	send_ekf_message();
 }
