@@ -150,8 +150,8 @@ void ahr_ekf_state_predict(void)
 	_mat_(w)[1] = deg_to_rad(imu.filtered_gyro.y);
 	_mat_(w)[2] = deg_to_rad(imu.filtered_gyro.z);
 
-	MAT_MULT(&f, &w, &dx);
-	MAT_ADD(&x, &dx, &x);
+	MAT_MULT(&f, &w, &dx); //calculate dx = f * w
+	MAT_ADD(&x, &dx, &x);  //calculate x = x + dx
 
 	quat_normalize(&_mat_(x)[0]);
 
