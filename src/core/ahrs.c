@@ -251,12 +251,12 @@ void ahr_ekf_state_update(void)
 
 	//update inovation and prediction
 	MAT_MULT(&K, &resid, &dx);
+	_mat_(dx)[3] = 0; //ignore updating q3
 	MAT_ADD(&x, &dx, &x);
 	quat_normalize(&_mat_(x)[0]);
 
 	//MAT_MULT(&K, &H, &KH);
 	MAT_SUB(&I, &KH, &I_KH);
-	_mat_(dx)[3] = 0; //ignore updating q3
 	MAT_MULT(&P, &I_KH, &P);
 
 	quat_to_euler(&_mat_(x)[0], &ahrs.attitude);
