@@ -15,4 +15,6 @@ typedef struct {
 	float z;
 } vector3d_f_t;
 
+void vector3d_normalize(vector3d_f_t *v);
+
 #endif

@@ -216,6 +216,9 @@ void ahr_ekf_state_update(void)
 	_mat_(h_x)[0] = 2.0*(q2*q3 + q0*q1);
 	_mat_(h_x)[2] = q0*q0 - q1*q1 - q2*q2 + q3*q3;
 
+	//normalize acceleromter
+	vector3d_normalize(&imu.filtered_accel);
+
 	//sensor estimation
 	_mat_(y)[0] = imu.filtered_accel.x;
 	_mat_(y)[1] = imu.filtered_accel.y;

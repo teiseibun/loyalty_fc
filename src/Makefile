@@ -83,7 +83,8 @@ SRC+=$(CORE)/main.c \
 	$(CORE)/link.c \
 	$(CORE)/ahrs.c \
 	$(CORE)/lpf.c \
-	$(CORE)/matrix.c
+	$(CORE)/matrix.c \
+	$(CORE)/vector.c
 
 CFLAGS+=-I./
 
