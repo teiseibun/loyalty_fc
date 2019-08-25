@@ -212,8 +212,8 @@ void ahr_ekf_state_update(void)
 	float q3 = _mat_(x)[3];
 
 	//predicted estimation
-	_mat_(h_x)[0] = 2.0*(q1*q3 - q0*q2);
-	_mat_(h_x)[1] = 2.0*(q2*q3 + q0*q1);
+	_mat_(h_x)[1] = 2.0*(q1*q3 - q0*q2);
+	_mat_(h_x)[0] = 2.0*(q2*q3 + q0*q1);
 	_mat_(h_x)[2] = q0*q0 - q1*q1 - q2*q2 + q3*q3;
 
 	//sensor estimation
@@ -247,13 +247,13 @@ void ahr_ekf_state_update(void)
 	MAT_MULT(&PHt, &Si, &K);
 
 	//update inovation and prediction
-	//MAT_MULT(&K, &resid, &dx);
-	//MAT_ADD(&x, &dx, &x);
-	//quat_normalize(&_mat_(x)[0]);
+	MAT_MULT(&K, &resid, &dx);
+	MAT_ADD(&x, &dx, &x);
+	quat_normalize(&_mat_(x)[0]);
 
 	//MAT_MULT(&K, &H, &KH);
-	//MAT_SUB(&I, &KH, &I_KH);
-	//MAT_MULT(&P, &I_KH, &P);
+	MAT_SUB(&I, &KH, &I_KH);
+	MAT_MULT(&P, &I_KH, &P);
 
 	quat_to_euler(&_mat_(x)[0], &ahrs.attitude);
         ahrs.attitude.roll = rad_to_deg(ahrs.attitude.roll);
