@@ -293,9 +293,8 @@ void ahrs_ekf_loop(void)
 	lpf_ema_vector3d(&imu.raw_accel, &accel_lpf_old, &imu.filtered_accel, 0.03);
 	lpf_ema_vector3d(&imu.raw_gyro, &gyro_lpf_old, &imu.filtered_gyro, 0.03);
 
-	//ahr_ekf_state_predict();
+	ahr_ekf_state_predict();
 	//ahr_ekf_state_update();
-	//calc_attitude_use_accel();
 }
 
 void ahrs_complementary_filter_loop(void)
@@ -306,53 +305,53 @@ void ahrs_complementary_filter_loop(void)
 	mpu6050_accel_convert_to_scale(&imu.unscaled_accel, &imu.raw_accel);
 	mpu6050_gyro_convert_to_scale(&imu.unscaled_gyro, &imu.raw_gyro);
 	
-	/* apply low pass filter to imu */
+	/* apply low pass filter */
 	lpf_ema_vector3d(&imu.raw_accel, &accel_lpf_old, &imu.filtered_accel, 0.03);
 	lpf_ema_vector3d(&imu.raw_gyro, &gyro_lpf_old, &imu.filtered_gyro, 0.03);
 
-	/* integrate gyro rate */
+	/* construct system transition function f */
 	float q0 = _mat_(x)[0];
 	float q1 = _mat_(x)[1];
 	float q2 = _mat_(x)[2];
 	float q3 = _mat_(x)[3];
-
 	_mat_(f)[0]=-0.5*dt*q1;   _mat_(f)[1]=-0.5*dt*q2;   _mat_(f)[2]=-0.5*dt*q3;
 	_mat_(f)[3]=+0.5*dt*q0;   _mat_(f)[4]=-0.5*dt*q3;   _mat_(f)[5]=+0.5*dt*q2;
 	_mat_(f)[6]=+0.5*dt*q3;   _mat_(f)[7]=+0.5*dt*q0;   _mat_(f)[8]=-0.5*dt*q1;
 	_mat_(f)[9]=-0.5*dt*q2;   _mat_(f)[10]=+0.5*dt*q1;  _mat_(f)[11]=+0.5*dt*q0;
 
+	/* angular rate from rate gyro */
 	_mat_(w)[1] = deg_to_rad(imu.filtered_gyro.x);
 	_mat_(w)[0] = deg_to_rad(imu.filtered_gyro.y);
 	_mat_(w)[2] = deg_to_rad(imu.filtered_gyro.z);
 
+	/* rate gyro integration */
 	MAT_MULT(&f, &w, &dx); //calculate dx = f * w
 	MAT_ADD(&x, &dx, &x);  //calculate x = x + dx
+	quat_normalize(&_mat_(x)[0]); //renormalization
 
-	quat_normalize(&_mat_(x)[0]);
-
-	//normalize acceleromter
-	vector3d_normalize(&imu.filtered_accel);
 
 	/* convert gravity vector to quaternion */
 	float q_gravity[4] = {0};
+	vector3d_normalize(&imu.filtered_accel); //normalize acceleromter
 	convert_gravity_to_quat(&imu.filtered_accel, q_gravity);
 
-	/* fuse quaternions */
+	/* sensors fusion */
 	float a = 0.0001f;
-	float filtered_q[4];
-	filtered_q[0] = (_mat_(x)[0] * a) + (q_gravity[0]* (1.0 - a));
-	filtered_q[1] = (_mat_(x)[1] * a) + (q_gravity[1]* (1.0 - a));
-	filtered_q[2] = (_mat_(x)[2] * a) + (q_gravity[2]* (1.0 - a));
-	filtered_q[3] = (_mat_(x)[3] * a) + (q_gravity[3]* (1.0 - a));
-	quat_normalize(filtered_q);
+	float q_fused[4];
+	q_fused[0] = (_mat_(x)[0] * a) + (q_gravity[0]* (1.0 - a));
+	q_fused[1] = (_mat_(x)[1] * a) + (q_gravity[1]* (1.0 - a));
+	q_fused[2] = (_mat_(x)[2] * a) + (q_gravity[2]* (1.0 - a));
+	q_fused[3] = (_mat_(x)[3] * a) + (q_gravity[3]* (1.0 - a));
+	quat_normalize(q_fused);
 
-	_mat_(x)[0] = filtered_q[0];
-	_mat_(x)[1] = filtered_q[1];
-	_mat_(x)[2] = filtered_q[2];
-	_mat_(x)[3] = filtered_q[3];
+	/* update state variables for rate gyro */
+	_mat_(x)[0] = q_fused[0];
+	_mat_(x)[1] = q_fused[1];
+	_mat_(x)[2] = q_fused[2];
+	_mat_(x)[3] = q_fused[3];
 
 	/* convert fused attitude from quaternion to euler angle */
-	quat_to_euler(filtered_q, &ahrs.attitude);
+	quat_to_euler(q_fused, &ahrs.attitude);
 	ahrs.attitude.roll = rad_to_deg(ahrs.attitude.roll);
 	ahrs.attitude.pitch = rad_to_deg(ahrs.attitude.pitch);
 }
