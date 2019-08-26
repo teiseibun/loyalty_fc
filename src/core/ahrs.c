@@ -310,14 +310,14 @@ void ahrs_complementary_filter_loop(void)
 	lpf_ema_vector3d(&imu.raw_gyro, &gyro_lpf_old, &imu.filtered_gyro, 0.03);
 
 	/* construct system transition function f */
-	float q0 = _mat_(x)[0];
-	float q1 = _mat_(x)[1];
-	float q2 = _mat_(x)[2];
-	float q3 = _mat_(x)[3];
-	_mat_(f)[0]=-0.5*dt*q1;   _mat_(f)[1]=-0.5*dt*q2;   _mat_(f)[2]=-0.5*dt*q3;
-	_mat_(f)[3]=+0.5*dt*q0;   _mat_(f)[4]=-0.5*dt*q3;   _mat_(f)[5]=+0.5*dt*q2;
-	_mat_(f)[6]=+0.5*dt*q3;   _mat_(f)[7]=+0.5*dt*q0;   _mat_(f)[8]=-0.5*dt*q1;
-	_mat_(f)[9]=-0.5*dt*q2;   _mat_(f)[10]=+0.5*dt*q1;  _mat_(f)[11]=+0.5*dt*q0;
+	float half_q0_dt = 0.5f * _mat_(x)[0] * dt;
+	float half_q1_dt = 0.5f * _mat_(x)[1] * dt;
+	float half_q2_dt = 0.5f * _mat_(x)[2] * dt;
+	float half_q3_dt = 0.5f * _mat_(x)[3] * dt;
+	_mat_(f)[0]=-half_q1_dt;   _mat_(f)[1]=-half_q2_dt;   _mat_(f)[2]=-half_q3_dt;
+	_mat_(f)[3]=+half_q0_dt;   _mat_(f)[4]=-half_q3_dt;   _mat_(f)[5]=+half_q2_dt;
+	_mat_(f)[6]=+half_q3_dt;   _mat_(f)[7]=+half_q0_dt;   _mat_(f)[8]=-half_q1_dt;
+	_mat_(f)[9]=-half_q2_dt;   _mat_(f)[10]=+half_q1_dt;  _mat_(f)[11]=+half_q0_dt;
 
 	/* angular rate from rate gyro */
 	_mat_(w)[1] = deg_to_rad(imu.filtered_gyro.x);
@@ -328,7 +328,6 @@ void ahrs_complementary_filter_loop(void)
 	MAT_MULT(&f, &w, &dx); //calculate dx = f * w
 	MAT_ADD(&x, &dx, &x);  //calculate x = x + dx
 	quat_normalize(&_mat_(x)[0]); //renormalization
-
 
 	/* convert gravity vector to quaternion */
 	float q_gravity[4] = {0};
