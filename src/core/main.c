@@ -49,7 +49,7 @@ int main()
 
 	while(mpu6050_init());
 
-	ahrs_ekf_init();
+	ahrs_init();
 
 	SysTick_Config(SystemCoreClock / 500); //500Hz flight controller main loop
 	timer2_init(); //100Hz telemetry loop

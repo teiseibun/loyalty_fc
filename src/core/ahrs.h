@@ -30,9 +30,7 @@ typedef struct {
 	attitude_t attitude;
 } ahrs_t;
 
-void ahrs_ekf_init(void);
-void ahrs_ekf_loop(void);
-
+void ahrs_init(void);
 void ahrs_loop(void);
 
 void quat_normalize(float *q);

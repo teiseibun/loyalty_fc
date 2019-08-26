@@ -355,6 +355,11 @@ void ahrs_complementary_filter_loop(void)
 	ahrs.attitude.pitch = rad_to_deg(ahrs.attitude.pitch);
 }
 
+void ahrs_init(void)
+{
+	ahrs_ekf_init();
+}
+
 void ahrs_loop(void)
 {
 	ahrs_complementary_filter_loop();
