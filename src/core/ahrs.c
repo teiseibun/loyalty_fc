@@ -334,16 +334,16 @@ void ahrs_complementary_filter_loop(void)
 	vector3d_normalize(&imu.filtered_accel);
 
 	/* convert gravity vector to quaternion */
-	float q[4] = {0};
-	convert_gravity_to_quat(&imu.filtered_accel, q);
+	float q_gravity[4] = {0};
+	convert_gravity_to_quat(&imu.filtered_accel, q_gravity);
 
 	/* fuse quaternions */
 	float a = 0.0001f;
 	float filtered_q[4];
-	filtered_q[0] = (_mat_(x)[0] * a) + (q[0]* (1.0 - a));
-	filtered_q[1] = (_mat_(x)[1] * a) + (q[1]* (1.0 - a));
-	filtered_q[2] = (_mat_(x)[2] * a) + (q[2]* (1.0 - a));
-	filtered_q[3] = (_mat_(x)[3] * a) + (q[3]* (1.0 - a));
+	filtered_q[0] = (_mat_(x)[0] * a) + (q_gravity[0]* (1.0 - a));
+	filtered_q[1] = (_mat_(x)[1] * a) + (q_gravity[1]* (1.0 - a));
+	filtered_q[2] = (_mat_(x)[2] * a) + (q_gravity[2]* (1.0 - a));
+	filtered_q[3] = (_mat_(x)[3] * a) + (q_gravity[3]* (1.0 - a));
 	quat_normalize(filtered_q);
 
 	_mat_(x)[0] = filtered_q[0];
@@ -351,6 +351,7 @@ void ahrs_complementary_filter_loop(void)
 	_mat_(x)[2] = filtered_q[2];
 	_mat_(x)[3] = filtered_q[3];
 
+	/* convert fused attitude from quaternion to euler angle */
 	quat_to_euler(filtered_q, &ahrs.attitude);
 	ahrs.attitude.roll = rad_to_deg(ahrs.attitude.roll);
 	ahrs.attitude.pitch = rad_to_deg(ahrs.attitude.pitch);
