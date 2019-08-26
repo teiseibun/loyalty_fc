@@ -16,7 +16,7 @@ void SysTick_Handler()
 {
 	led_on(LED1);
 
-	ahrs_ekf_loop();
+	ahrs_loop();
 
 	led_off(LED1);
 }

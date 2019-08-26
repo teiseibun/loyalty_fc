@@ -33,6 +33,8 @@ typedef struct {
 void ahrs_ekf_init(void);
 void ahrs_ekf_loop(void);
 
+void ahrs_loop(void);
+
 void quat_normalize(float *q);
 
 void euler_to_quat(attitude_t *euler, float *q);
