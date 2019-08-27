@@ -57,7 +57,7 @@ void ahrs_ekf_init(void)
 	MAT_INIT(Q, 4, 4);
 	MAT_INIT(dt_4x4, 4, 4);
 
-	_mat_(P)[0] = _mat_(P)[5] = _mat_(P)[10] = _mat_(P)[15] =  1.0f;
+	_mat_(P)[0] = _mat_(P)[5] = _mat_(P)[10] = _mat_(P)[15] =  100.0f;
 	_mat_(Q)[0] = _mat_(Q)[5] = _mat_(Q)[10] = _mat_(Q)[15] = 0.1f; 
 	_mat_(R)[0] = _mat_(R)[5] = _mat_(R)[10] = _mat_(R)[15] = 0.001;
 
