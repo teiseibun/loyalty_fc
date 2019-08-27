@@ -57,9 +57,9 @@ void ahrs_ekf_init(void)
 	MAT_INIT(Q, 4, 4);
 	MAT_INIT(dt_4x4, 4, 4);
 
-	_mat_(P)[0] = _mat_(P)[5] = _mat_(P)[10] = _mat_(P)[15] =  50.0f;
-	_mat_(Q)[0] = _mat_(Q)[5] = _mat_(Q)[10] = _mat_(Q)[15] = 10.0f; 
-	_mat_(R)[0] = _mat_(R)[5] = _mat_(R)[10] = _mat_(R)[15] = 0.00001;
+	_mat_(P)[0] = _mat_(P)[5] = _mat_(P)[10] = _mat_(P)[15] =  1.0f;
+	_mat_(Q)[0] = _mat_(Q)[5] = _mat_(Q)[10] = _mat_(Q)[15] = 0.1f; 
+	_mat_(R)[0] = _mat_(R)[5] = _mat_(R)[10] = _mat_(R)[15] = 0.001;
 
 	//initialize lpf
 	mpu6050_read_unscaled_data(&imu.unscaled_accel, &imu.unscaled_gyro);
@@ -150,8 +150,8 @@ void ahr_ekf_state_predict(void)
 	_mat_(f)[6]=+0.5*dt*q3;   _mat_(f)[7]=+0.5*dt*q0;   _mat_(f)[8]=-0.5*dt*q1;
 	_mat_(f)[9]=-0.5*dt*q2;   _mat_(f)[10]=+0.5*dt*q1;  _mat_(f)[11]=+0.5*dt*q0;
 
-	_mat_(w)[0] = deg_to_rad(imu.filtered_gyro.x);
-	_mat_(w)[1] = deg_to_rad(imu.filtered_gyro.y);
+	_mat_(w)[1] = deg_to_rad(imu.filtered_gyro.x);
+	_mat_(w)[0] = deg_to_rad(imu.filtered_gyro.y);
 	_mat_(w)[2] = deg_to_rad(imu.filtered_gyro.z);
 
 	MAT_MULT(&f, &w, &dx); //calculate dx = f * w
@@ -208,10 +208,10 @@ void ahr_ekf_state_update(void)
 	_mat_(K)[15] = _mat_(P)[15] / (_mat_(P)[15] + _mat_(R)[15]);
 
 	/* caluclate innovation */
-	_mat_(x)[0] += _mat_(K)[0] * _mat_(resid)[0];
-	_mat_(x)[1] += _mat_(K)[1] * _mat_(resid)[1];
-	_mat_(x)[2] += _mat_(K)[2] * _mat_(resid)[2];
-	_mat_(x)[3] += _mat_(K)[3] * _mat_(resid)[3];
+	_mat_(x)[0] += (_mat_(K)[0] * _mat_(resid)[0]);
+	_mat_(x)[1] += (_mat_(K)[5] * _mat_(resid)[1]);
+	_mat_(x)[2] += (_mat_(K)[10] * _mat_(resid)[2]);
+	_mat_(x)[3] += (_mat_(K)[15] * _mat_(resid)[3]);
 	quat_normalize(&_mat_(x)[0]); //renormalize quaternion
 
 	/* update covariance matrix */
