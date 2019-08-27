@@ -9,7 +9,9 @@
 #include "uart.h"
 #include "matrix.h"
 
-#define dt 0.002 //500Hz = 0.002s
+#define AHRS_SELECT AHRS_SELECT_EKF
+
+#define dt 0.002 //0.002s = 500Hz
 
 imu_t imu;
 ahrs_t ahrs;
@@ -150,21 +152,14 @@ void ahr_ekf_state_predict(void)
 	_mat_(f)[6]=+0.5*dt*q3;   _mat_(f)[7]=+0.5*dt*q0;   _mat_(f)[8]=-0.5*dt*q1;
 	_mat_(f)[9]=-0.5*dt*q2;   _mat_(f)[10]=+0.5*dt*q1;  _mat_(f)[11]=+0.5*dt*q0;
 
-	_mat_(w)[1] = deg_to_rad(imu.filtered_gyro.x);
-	_mat_(w)[0] = deg_to_rad(imu.filtered_gyro.y);
+	_mat_(w)[0] = deg_to_rad(imu.filtered_gyro.x);
+	_mat_(w)[1] = deg_to_rad(imu.filtered_gyro.y);
 	_mat_(w)[2] = deg_to_rad(imu.filtered_gyro.z);
 
 	MAT_MULT(&f, &w, &dx); //calculate dx = f * w
 	MAT_ADD(&x, &dx, &x);  //calculate x = x + dx
 
 	quat_normalize(&_mat_(x)[0]);
-
-#if 0   //debug print messages
-	if(uart3_tx_busy() == false) {
-		//print_matrix(_mat_(dx), 4, 1);
-		//print_matrix(_mat_(f), 4, 3);
-	}
-#endif
 
 	//P = P + dt * (FP + PF' + Q)
 	float wx = _mat_(w)[0];
@@ -183,10 +178,6 @@ void ahr_ekf_state_predict(void)
 	MAT_ADD(&FP_PFt_Q, &Q, &FP_PFt_Q);      //calculate F*P + P*F + Q
 	MAT_MULT(&dt_4x4, &FP_PFt_Q, &FP_PFt_Q) //calculate dt * (F*P + P*F + Q)
 	MAT_ADD(&P, &FP_PFt_Q, &P);             //calculate P = P + dt * (F*P + P*F + Q)
-
-	//quat_to_euler(&_mat_(x)[0], &ahrs.attitude);
-	//ahrs.attitude.roll = rad_to_deg(ahrs.attitude.roll);
-	//ahrs.attitude.pitch = rad_to_deg(ahrs.attitude.pitch);
 }
 
 void ahr_ekf_state_update(void)
@@ -228,32 +219,12 @@ void ahr_ekf_state_update(void)
 
 void ahrs_ekf_loop(void)
 {
-	//read new data from sensor
-	mpu6050_read_unscaled_data(&imu.unscaled_accel, &imu.unscaled_gyro);
-	mpu6050_fix_bias(&imu.unscaled_accel, &imu.unscaled_gyro);
-	mpu6050_accel_convert_to_scale(&imu.unscaled_accel, &imu.raw_accel);
-	mpu6050_gyro_convert_to_scale(&imu.unscaled_gyro, &imu.raw_gyro);
-	
-	//smooth imu signal with lpf
-	lpf_ema_vector3d(&imu.raw_accel, &accel_lpf_old, &imu.filtered_accel, 0.03);
-	lpf_ema_vector3d(&imu.raw_gyro, &gyro_lpf_old, &imu.filtered_gyro, 0.03);
-
 	ahr_ekf_state_predict();
 	ahr_ekf_state_update();
 }
 
 void ahrs_complementary_filter_loop(void)
 {
-	/* read sensors */
-	mpu6050_read_unscaled_data(&imu.unscaled_accel, &imu.unscaled_gyro);
-	mpu6050_fix_bias(&imu.unscaled_accel, &imu.unscaled_gyro);
-	mpu6050_accel_convert_to_scale(&imu.unscaled_accel, &imu.raw_accel);
-	mpu6050_gyro_convert_to_scale(&imu.unscaled_gyro, &imu.raw_gyro);
-	
-	/* apply low pass filter */
-	lpf_ema_vector3d(&imu.raw_accel, &accel_lpf_old, &imu.filtered_accel, 0.03);
-	lpf_ema_vector3d(&imu.raw_gyro, &gyro_lpf_old, &imu.filtered_gyro, 0.03);
-
 	/* construct system transition function f */
 	float half_q0_dt = 0.5f * _mat_(x)[0] * dt;
 	float half_q1_dt = 0.5f * _mat_(x)[1] * dt;
@@ -265,8 +236,8 @@ void ahrs_complementary_filter_loop(void)
 	_mat_(f)[9]=-half_q2_dt;   _mat_(f)[10]=+half_q1_dt;  _mat_(f)[11]=+half_q0_dt;
 
 	/* angular rate from rate gyro */
-	_mat_(w)[1] = deg_to_rad(imu.filtered_gyro.x);
-	_mat_(w)[0] = deg_to_rad(imu.filtered_gyro.y);
+	_mat_(w)[0] = deg_to_rad(imu.filtered_gyro.x);
+	_mat_(w)[1] = deg_to_rad(imu.filtered_gyro.y);
 	_mat_(w)[2] = deg_to_rad(imu.filtered_gyro.z);
 
 	/* rate gyro integration */
@@ -307,6 +278,21 @@ void ahrs_init(void)
 
 void ahrs_loop(void)
 {
+	/* read sensors */
+	mpu6050_read_unscaled_data(&imu.unscaled_accel, &imu.unscaled_gyro);
+	mpu6050_fix_bias(&imu.unscaled_accel, &imu.unscaled_gyro);
+	mpu6050_accel_convert_to_scale(&imu.unscaled_accel, &imu.raw_accel);
+	mpu6050_gyro_convert_to_scale(&imu.unscaled_gyro, &imu.raw_gyro);
+	
+	/* apply low pass filter */
+	lpf_ema_vector3d(&imu.raw_accel, &accel_lpf_old, &imu.filtered_accel, 0.03);
+	lpf_ema_vector3d(&imu.raw_gyro, &gyro_lpf_old, &imu.filtered_gyro, 0.03);
+
+#if AHRS_SELECT == AHRS_SELECT_EKF 
 	ahrs_ekf_loop();
-	//ahrs_complementary_filter_loop();
+#endif
+
+#if AHRS_SELECT == AHRS_SELECT_CF
+	ahrs_complementary_filter_loop();
+#endif
 }

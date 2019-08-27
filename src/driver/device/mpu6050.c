@@ -77,8 +77,8 @@ void mpu6050_read_unscaled_data(vector3d_16_t *accel_unscaled_data, vector3d_16_
 	/* Get the new data */
 	mpu6050_read(MPU6050_ACCEL_XOUT_H, buffer, 14); 
 
-	accel_unscaled_data->y = (buffer[0] << 8) | buffer[1];
-	accel_unscaled_data->x = (buffer[2] << 8) | buffer[3];
+	accel_unscaled_data->x = (buffer[0] << 8) | buffer[1];
+	accel_unscaled_data->y = (buffer[2] << 8) | buffer[3];
 	accel_unscaled_data->z = (buffer[4] << 8) | buffer[5];
 	gyro_unscaled_data->x = (buffer[8] << 8) | buffer[9];
 	gyro_unscaled_data->y = (buffer[10] << 8) | buffer[11];
