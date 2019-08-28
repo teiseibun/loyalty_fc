@@ -1,9 +1,5 @@
 import pygame
 import math
-from OpenGL.GL import *
-from OpenGL.GLU import *
-from pygame.locals import *
-
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import numpy as np
@@ -13,8 +9,9 @@ import serial
 import struct
 from collections import deque
 from datetime import datetime
-
-from ahrs_visualize import *
+from OpenGL.GL import *
+from OpenGL.GLU import *
+from pygame.locals import *
 
 ser = serial.Serial(
     port='/dev/ttyUSB0',\
@@ -28,7 +25,7 @@ useQuat = True
 
 q = [1.0, 0.0, 0.0, 0.0]
 
-def ahrs_visualize_init():
+def ahrs_visualize():
     video_flags = OPENGL | DOUBLEBUF
     pygame.init()
     screen = pygame.display.set_mode((640, 480), video_flags)
@@ -153,70 +150,66 @@ def quat_to_ypr(q):
     roll  *= 180.0 / math.pi
     return [yaw, pitch, roll]
 
-class serial_plotter_class:
-    def serial_receive(self):
-        while ser.inWaiting() > 0:
-            buffer = []
-            checksum = 0
+def serial_receive():
+    while ser.inWaiting() > 0:
+        buffer = []
+        checksum = 0
 
-            c = ser.read(1)
+        c = ser.read(1)
 
-            #wait for start byte
-            if c == '@':
-                #print('start byte received')
+        #wait for start byte
+        if c == '@':
+            #print('start byte received')
+            pass
+        else:
+            continue
+
+        #receive package size
+        while ser.inWaiting() == 0:
+            continue
+        payload_count, =  struct.unpack("B", ser.read(1))
+        #print('payload size: %d' %(payload_count))
+
+        #receive message id
+        while ser.inWaiting() == 0:
+            continue
+        _message_id, =  struct.unpack("c", ser.read(1))
+        message_id = ord(_message_id)
+        if message_id != 4:
+            continue
+        print('[%s]received message, id:%d' %(datetime.now().strftime('%H:%M:%S'), message_id))
+
+        #receive payload and calculate checksum
+        for i in range(0, payload_count):
+            while ser.inWaiting() == 0:
+                continue
+            buffer.append(ser.read(1))
+            buffer_checksum ,= struct.unpack("B", buffer[i])
+            checksum ^= buffer_checksum
+
+        #checksum test
+        received_checksum ,= struct.unpack("B", ser.read())
+        if received_checksum != checksum:
+                print("error: checksum mismatch");
+                return 'fail'
+        else:
+                #print("checksum is correct (%d)" %(checksum))
                 pass
-            else:
-                continue
 
-            #receive package size
-            while ser.inWaiting() == 0:
-                continue
-            payload_count, =  struct.unpack("B", ser.read(1))
-            #print('payload size: %d' %(payload_count))
-
-            #receive message id
-            while ser.inWaiting() == 0:
-                continue
-            _message_id, =  struct.unpack("c", ser.read(1))
-            message_id = ord(_message_id)
-            if message_id != 4:
-                continue
-            print('[%s]received message, id:%d' %(datetime.now().strftime('%H:%M:%S'), message_id))
-
-            #receive payload and calculate checksum
-            for i in range(0, payload_count):
-                while ser.inWaiting() == 0:
-                    continue
-                buffer.append(ser.read(1))
-                buffer_checksum ,= struct.unpack("B", buffer[i])
-                checksum ^= buffer_checksum
-
-            #checksum test
-            received_checksum ,= struct.unpack("B", ser.read())
-            if received_checksum != checksum:
-                    print("error: checksum mismatch");
-                    return 'fail'
-            else:
-                    #print("checksum is correct (%d)" %(checksum))
-                    pass
-
-            for i in range(0, 4):
-                #unpack received data
-                binary_data = ''.join([buffer[i * 4], buffer[i * 4 + 1], buffer[i * 4 + 2], buffer[i * 4 + 3]])
-                float_data = np.asarray(struct.unpack("f", binary_data))
-                q[i] = float_data
-                print("received: %f" %(float_data))
-            #print("-----------------------------");
-            return 'success'
-
-#ahrs_visualize_init()
-serial_plotter = serial_plotter_class()
+        for i in range(0, 4):
+            #unpack received data
+            binary_data = ''.join([buffer[i * 4], buffer[i * 4 + 1], buffer[i * 4 + 2], buffer[i * 4 + 3]])
+            float_data = np.asarray(struct.unpack("f", binary_data))
+            q[i] = float_data
+            print("received: %f" %(float_data))
+        #print("-----------------------------");
+        return 'success'
 
 class serial_thread(threading.Thread):
 	def run(self):
 		while True:
-			serial_plotter.serial_receive()
+			serial_receive()
 
 serial_thread().start()
 
-ahrs_visualize_init()
+ahrs_visualize()
