@@ -12,6 +12,7 @@ extern ahrs_t ahrs;
 
 extern float _mat_(P)[4 * 4];
 extern float _mat_(K)[4 * 4];
+extern float _mat_(x_posteriori)[4 * 1];
 
 int pack_float(float *data_float, uint8_t *byte_to_sent)
 {
@@ -72,13 +73,28 @@ void send_imu_message(void)
 	send_onboard_data(payload, payload_size);
 }
 
-void send_attitude_message(void)
+void send_attitude_euler_message(void)
 {
 	uint8_t payload[512] = {0}; //~64 float
 	int payload_size = 3; //reserved for header message
-	payload[2] = MESSAGE_ID_ATTITUDE;
+	payload[2] = MESSAGE_ID_ATTITUDE_EULER;
 
 	payload_size += pack_attitude(&ahrs.attitude, payload + payload_size);
+
+	send_onboard_data(payload, payload_size);
+}
+
+void send_attitude_quaternion_message(void)
+{
+	uint8_t payload[512] = {0}; //~64 float
+	int payload_size = 3; //reserved for header message
+
+	payload[2] = MESSAGE_ID_ATTITUDE_QUAT;
+
+	payload_size += pack_float(&_mat_(x_posteriori)[0], payload + payload_size);
+	payload_size += pack_float(&_mat_(x_posteriori)[1], payload + payload_size);
+	payload_size += pack_float(&_mat_(x_posteriori)[2], payload + payload_size);
+	payload_size += pack_float(&_mat_(x_posteriori)[3], payload + payload_size);
 
 	send_onboard_data(payload, payload_size);
 }
@@ -122,7 +138,8 @@ void telemetry_loop()
 		return;
 
 	//send_imu_message();
-	send_attitude_message();
+	//send_attitude_euler_message();
+	send_attitude_quaternion_message();
 	//send_attitude_imu_message();
 	//send_ekf_message();
 }

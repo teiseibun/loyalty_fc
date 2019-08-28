@@ -18,7 +18,8 @@ ahrs_t ahrs;
 
 vector3d_f_t accel_lpf_old, gyro_lpf_old;
 
-MAT_ALLOC(x, 4, 1);
+MAT_ALLOC(x_priori, 4, 1);
+MAT_ALLOC(x_posteriori, 4, 1);
 MAT_ALLOC(dx, 4, 1);
 MAT_ALLOC(w, 3, 1);
 MAT_ALLOC(f, 4, 3);
@@ -42,7 +43,8 @@ MAT_ALLOC(dt_4x4, 4, 4) = {dt, 0, 0 ,0,
 void ahrs_ekf_init(void)
 {
 	//initialize matrices
-	MAT_INIT(x, 4, 1);
+	MAT_INIT(x_priori, 4, 1);
+	MAT_INIT(x_posteriori, 4, 1);
 	MAT_INIT(dx, 4, 1);
 	MAT_INIT(w, 3, 1);
 	MAT_INIT(f, 4, 3);
@@ -78,7 +80,7 @@ void ahrs_ekf_init(void)
 		.pitch = ahrs.attitude.pitch,
 		.yaw = 0.0f
 	};
-	euler_to_quat(&att_init, &_mat_(x)[0]);
+	euler_to_quat(&att_init, &_mat_(x_priori)[0]);
 }
 
 //in: euler angle [radian], out: quaternion
@@ -144,10 +146,10 @@ void calc_attitude_use_accel(void)
 
 void ahr_ekf_state_predict(void)
 {
-	float half_q0_dt = 0.5f * _mat_(x)[0] * dt;
-	float half_q1_dt = 0.5f * _mat_(x)[1] * dt;
-	float half_q2_dt = 0.5f * _mat_(x)[2] * dt;
-	float half_q3_dt = 0.5f * _mat_(x)[3] * dt;
+	float half_q0_dt = 0.5f * _mat_(x_priori)[0] * dt;
+	float half_q1_dt = 0.5f * _mat_(x_priori)[1] * dt;
+	float half_q2_dt = 0.5f * _mat_(x_priori)[2] * dt;
+	float half_q3_dt = 0.5f * _mat_(x_priori)[3] * dt;
 	_mat_(f)[0]=-half_q1_dt;   _mat_(f)[1]=-half_q2_dt;   _mat_(f)[2]=-half_q3_dt;
 	_mat_(f)[3]=+half_q0_dt;   _mat_(f)[4]=-half_q3_dt;   _mat_(f)[5]=+half_q2_dt;
 	_mat_(f)[6]=+half_q3_dt;   _mat_(f)[7]=+half_q0_dt;   _mat_(f)[8]=-half_q1_dt;
@@ -158,9 +160,9 @@ void ahr_ekf_state_predict(void)
 	_mat_(w)[2] = deg_to_rad(imu.filtered_gyro.z);
 
 	MAT_MULT(&f, &w, &dx); //calculate dx = f * w
-	MAT_ADD(&x, &dx, &x);  //calculate x = x + dx
+	MAT_ADD(&x_priori, &dx, &x_priori);  //calculate x = x + dx
 
-	quat_normalize(&_mat_(x)[0]);
+	quat_normalize(&_mat_(x_priori)[0]);
 
 	//P = P + dt * (FP + PF' + Q)
 	float wx = _mat_(w)[0];
@@ -188,10 +190,10 @@ void ahr_ekf_state_update(void)
 	convert_gravity_to_quat(&imu.filtered_accel, &_mat_(y)[0]);
 
 	/* calculate residual */
-	_mat_(resid)[0] = _mat_(y)[0] - _mat_(x)[0];
-	_mat_(resid)[1] = _mat_(y)[1] - _mat_(x)[1];
-	_mat_(resid)[2] = _mat_(y)[2] - _mat_(x)[2];
-	_mat_(resid)[3] = _mat_(y)[3] - _mat_(x)[3];
+	_mat_(resid)[0] = _mat_(y)[0] - _mat_(x_priori)[0];
+	_mat_(resid)[1] = _mat_(y)[1] - _mat_(x_priori)[1];
+	_mat_(resid)[2] = _mat_(y)[2] - _mat_(x_priori)[2];
+	_mat_(resid)[3] = _mat_(y)[3] - _mat_(x_priori)[3];
 
 	/* calculate kalman gain */
 	_mat_(K)[0] = _mat_(P)[0] / (_mat_(P)[0] + _mat_(R)[0]);
@@ -200,11 +202,17 @@ void ahr_ekf_state_update(void)
 	_mat_(K)[15] = _mat_(P)[15] / (_mat_(P)[15] + _mat_(R)[15]);
 
 	/* caluclate innovation */
-	_mat_(x)[0] += (_mat_(K)[0] * _mat_(resid)[0]);
-	_mat_(x)[1] += (_mat_(K)[5] * _mat_(resid)[1]);
-	_mat_(x)[2] += (_mat_(K)[10] * _mat_(resid)[2]);
-	_mat_(x)[3] += (_mat_(K)[15] * _mat_(resid)[3]);
-	quat_normalize(&_mat_(x)[0]); //renormalize quaternion
+	_mat_(x_posteriori)[0] += (_mat_(K)[0] * _mat_(resid)[0]);
+	_mat_(x_posteriori)[1] += (_mat_(K)[5] * _mat_(resid)[1]);
+	_mat_(x_posteriori)[2] += (_mat_(K)[10] * _mat_(resid)[2]);
+	_mat_(x_posteriori)[3] += (_mat_(K)[15] * _mat_(resid)[3]);
+	quat_normalize(&_mat_(x_posteriori)[0]); //renormalize quaternion
+
+	/* update old state variable */
+	_mat_(x_priori)[0] = _mat_(x_posteriori)[0];
+	_mat_(x_priori)[1] = _mat_(x_posteriori)[1];
+	_mat_(x_priori)[2] = _mat_(x_posteriori)[2];
+	_mat_(x_priori)[3] = _mat_(x_posteriori)[3];
 
 	/* update covariance matrix */
 	_mat_(P)[0] *= (1.0f - _mat_(K)[0]);
@@ -213,7 +221,7 @@ void ahr_ekf_state_update(void)
 	_mat_(P)[15] *= (1.0f - _mat_(K)[15]);
 
 	/* convert fused attitude from quaternion to euler angle */
-	quat_to_euler(&_mat_(x)[0], &ahrs.attitude);
+	quat_to_euler(&_mat_(x_posteriori)[0], &ahrs.attitude);
 	ahrs.attitude.roll = rad_to_deg(ahrs.attitude.roll);
 	ahrs.attitude.pitch = rad_to_deg(ahrs.attitude.pitch);
 }
@@ -227,10 +235,10 @@ void ahrs_ekf_loop(void)
 void ahrs_complementary_filter_loop(void)
 {
 	/* construct system transition function f */
-	float half_q0_dt = 0.5f * _mat_(x)[0] * dt;
-	float half_q1_dt = 0.5f * _mat_(x)[1] * dt;
-	float half_q2_dt = 0.5f * _mat_(x)[2] * dt;
-	float half_q3_dt = 0.5f * _mat_(x)[3] * dt;
+	float half_q0_dt = 0.5f * _mat_(x_priori)[0] * dt;
+	float half_q1_dt = 0.5f * _mat_(x_priori)[1] * dt;
+	float half_q2_dt = 0.5f * _mat_(x_priori)[2] * dt;
+	float half_q3_dt = 0.5f * _mat_(x_priori)[3] * dt;
 	_mat_(f)[0]=-half_q1_dt;   _mat_(f)[1]=-half_q2_dt;   _mat_(f)[2]=-half_q3_dt;
 	_mat_(f)[3]=+half_q0_dt;   _mat_(f)[4]=-half_q3_dt;   _mat_(f)[5]=+half_q2_dt;
 	_mat_(f)[6]=+half_q3_dt;   _mat_(f)[7]=+half_q0_dt;   _mat_(f)[8]=-half_q1_dt;
@@ -243,8 +251,8 @@ void ahrs_complementary_filter_loop(void)
 
 	/* rate gyro integration */
 	MAT_MULT(&f, &w, &dx); //calculate dx = f * w
-	MAT_ADD(&x, &dx, &x);  //calculate x = x + dx
-	quat_normalize(&_mat_(x)[0]); //renormalization
+	MAT_ADD(&x_priori, &dx, &x_priori);  //calculate x = x + dx
+	quat_normalize(&_mat_(x_priori)[0]); //renormalization
 
 	/* convert gravity vector to quaternion */
 	float q_gravity[4] = {0};
@@ -254,17 +262,17 @@ void ahrs_complementary_filter_loop(void)
 	/* sensors fusion */
 	float a = 0.0001f;
 	float q_fused[4];
-	q_fused[0] = (_mat_(x)[0] * a) + (q_gravity[0]* (1.0 - a));
-	q_fused[1] = (_mat_(x)[1] * a) + (q_gravity[1]* (1.0 - a));
-	q_fused[2] = (_mat_(x)[2] * a) + (q_gravity[2]* (1.0 - a));
-	q_fused[3] = (_mat_(x)[3] * a) + (q_gravity[3]* (1.0 - a));
+	q_fused[0] = (_mat_(x_priori)[0] * a) + (q_gravity[0]* (1.0 - a));
+	q_fused[1] = (_mat_(x_priori)[1] * a) + (q_gravity[1]* (1.0 - a));
+	q_fused[2] = (_mat_(x_priori)[2] * a) + (q_gravity[2]* (1.0 - a));
+	q_fused[3] = (_mat_(x_priori)[3] * a) + (q_gravity[3]* (1.0 - a));
 	quat_normalize(q_fused);
 
 	/* update state variables for rate gyro */
-	_mat_(x)[0] = q_fused[0];
-	_mat_(x)[1] = q_fused[1];
-	_mat_(x)[2] = q_fused[2];
-	_mat_(x)[3] = q_fused[3];
+	_mat_(x_priori)[0] = q_fused[0];
+	_mat_(x_priori)[1] = q_fused[1];
+	_mat_(x_priori)[2] = q_fused[2];
+	_mat_(x_priori)[3] = q_fused[3];
 
 	/* convert fused attitude from quaternion to euler angle */
 	quat_to_euler(q_fused, &ahrs.attitude);

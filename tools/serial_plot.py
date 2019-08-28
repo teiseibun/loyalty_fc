@@ -145,7 +145,16 @@ class serial_plotter_class:
         	self.create_curve('K[2][2]', 'green')
         	self.create_curve('K[3][3]', 'orange')
         	self.show_subplot()
-              
+        elif message_id == 4:
+         	plt.subplot(111)
+        	plt.ylabel('Attitude (quaternion)')
+        	plt.ylim([-5, 5])
+        	self.create_curve('q0', 'red')
+        	self.create_curve('q1', 'blue')
+        	self.create_curve('q2', 'green')
+        	self.create_curve('q3', 'orange')
+        	self.show_subplot()
+
     def show_graph(self):
 	ani = animation.FuncAnimation(self.figure, self.animate, np.arange(0, 200), \
 		interval=0, blit=True)
@@ -212,7 +221,7 @@ class serial_plotter_class:
             #print("-----------------------------");
             return 'success'
 
-ahrs_visualize_init()
+#ahrs_visualize_init()
 serial_plotter = serial_plotter_class()
 
 class serial_thread(threading.Thread):
