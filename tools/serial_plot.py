@@ -8,6 +8,8 @@ import struct
 from collections import deque
 from datetime import datetime
 
+from ahrs_visualize import *
+
 ser = serial.Serial(
     port='/dev/ttyUSB0',\
     baudrate=115200,\
@@ -210,6 +212,7 @@ class serial_plotter_class:
             #print("-----------------------------");
             return 'success'
 
+ahrs_visualize_init()
 serial_plotter = serial_plotter_class()
 
 class serial_thread(threading.Thread):
