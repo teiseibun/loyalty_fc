@@ -8,8 +8,6 @@ import struct
 from collections import deque
 from datetime import datetime
 
-from ahrs_visualize import *
-
 ser = serial.Serial(
     port='/dev/ttyUSB0',\
     baudrate=115200,\
@@ -159,7 +157,7 @@ class serial_plotter_class:
 	ani = animation.FuncAnimation(self.figure, self.animate, np.arange(0, 200), \
 		interval=0, blit=True)
 
-	plt.show()
+	plt.show(block=False)
 
     def serial_receive(self):
         while ser.inWaiting() > 0:
@@ -221,13 +219,15 @@ class serial_plotter_class:
             #print("-----------------------------");
             return 'success'
 
-#ahrs_visualize_init()
 serial_plotter = serial_plotter_class()
 
 class serial_thread(threading.Thread):
 	def run(self):
 		while True:
-			serial_plotter.serial_receive()
+		    serial_plotter.serial_receive()
+
+        def join(self):
+            super().join()
 
 serial_thread().start()
 

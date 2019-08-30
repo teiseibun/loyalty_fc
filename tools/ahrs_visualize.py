@@ -209,6 +209,8 @@ class serial_thread(threading.Thread):
 	def run(self):
 		while True:
 			serial_receive()
+        def join(self):
+            super().join()
 
 serial_thread().start()
 
