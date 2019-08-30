@@ -262,11 +262,11 @@ void ahrs_complementary_filter_loop(void)
 	/* sensors fusion */
 	float a = 0.0001f;
 	float q_fused[4];
-	q_fused[0] = (_mat_(x_priori)[0] * a) + (q_gravity[0]* (1.0 - a));
-	q_fused[1] = (_mat_(x_priori)[1] * a) + (q_gravity[1]* (1.0 - a));
-	q_fused[2] = (_mat_(x_priori)[2] * a) + (q_gravity[2]* (1.0 - a));
-	q_fused[3] = (_mat_(x_priori)[3] * a) + (q_gravity[3]* (1.0 - a));
-	quat_normalize(q_fused);
+	_mat_(x_posteriori)[0] = (_mat_(x_priori)[0] * a) + (q_gravity[0]* (1.0 - a));
+	_mat_(x_posteriori)[1] = (_mat_(x_priori)[1] * a) + (q_gravity[1]* (1.0 - a));
+	_mat_(x_posteriori)[2] = (_mat_(x_priori)[2] * a) + (q_gravity[2]* (1.0 - a));
+	_mat_(x_posteriori)[3] = (_mat_(x_priori)[3] * a) + (q_gravity[3]* (1.0 - a));
+	quat_normalize(&_mat_(x_posteriori)[0]);
 
 	/* update state variables for rate gyro */
 	_mat_(x_priori)[0] = q_fused[0];
