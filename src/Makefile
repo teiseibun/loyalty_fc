@@ -4,14 +4,10 @@ CC=arm-none-eabi-gcc
 OBJCOPY=arm-none-eabi-objcopy
 GDB=arm-none-eabi-gdb
 
-ARCH=CM4F
-
 CFLAGS=-g -O2 -mlittle-endian -mthumb
-CFLAGS+=-mcpu=cortex-m4
-CFLAGS+=-mfpu=fpv4-sp-d16 -mfloat-abi=hard
+CFLAGS+=-mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard
 CFLAGS+=--specs=nano.specs --specs=nosys.specs -fno-builtin-printf
-CFLAGS+=-Wall
-CFLAGS+=-fno-strict-aliasing
+CFLAGS+=-Wall -fno-strict-aliasing
 CFLAGS+=-D USE_STDPERIPH_DRIVER \
 	-D STM32F40XX \
 	-D __FPU_PRESENT=1 \
@@ -19,16 +15,30 @@ CFLAGS+=-D USE_STDPERIPH_DRIVER \
 	-D ARM_MATH_CM4
 CFLAGS+=-Wl,-T,stm32_flash.ld
 
-LDLIBS+=-Wl,--start-group -lm -Wl,--end-group
+LDFLAGS+=-Wl,--start-group -lm -Wl,--end-group
 
-ST_LIB=./lib/STM32F4xx_StdPeriph_Driver
+CMSIS=./lib/CMSIS/
+ST_HAL=./lib/STM32F4xx_StdPeriph_Driver
+ARM_DSP=./lib/CMSIS/DSP_Lib
 COMMON=./common
 DRIVER=./driver
 CORE=./core
 
-ARM_DSP=./lib/CMSIS/DSP_Lib
-
 SRC=
+
+ARM_DSP=$(CMSIS)/DSP_Lib
+SRC+=$(CMSIS)/system_stm32f4xx.c
+
+SRC+=$(ST_HAL)/src/misc.c \
+	$(ST_HAL)/src/stm32f4xx_rcc.c \
+	$(ST_HAL)/src/stm32f4xx_dma.c \
+	$(ST_HAL)/src/stm32f4xx_flash.c \
+	$(ST_HAL)/src/stm32f4xx_gpio.c \
+	$(ST_HAL)/src/stm32f4xx_usart.c \
+	$(ST_HAL)/src/stm32f4xx_tim.c\
+	$(ST_HAL)/src/stm32f4xx_spi.c\
+	$(ST_HAL)/src/stm32f4xx_i2c.c \
+	$(ST_HAL)/src/stm32f4xx_adc.c
 
 SRC+=$(ARM_DSP)/Source/FastMathFunctions/arm_cos_f32.c \
 	$(ARM_DSP)/Source/FastMathFunctions/arm_sin_f32.c \
@@ -39,19 +49,6 @@ SRC+=$(ARM_DSP)/Source/FastMathFunctions/arm_cos_f32.c \
 	$(ARM_DSP)/Source/MatrixFunctions/arm_mat_mult_f32.c \
 	$(ARM_DSP)/Source/MatrixFunctions/arm_mat_trans_f32.c \
 	$(ARM_DSP)/Source/MatrixFunctions/arm_mat_inverse_f32.c
-
-SRC+=./lib/CMSIS/system_stm32f4xx.c
-
-SRC+=$(ST_LIB)/src/misc.c \
-	$(ST_LIB)/src/stm32f4xx_rcc.c \
-	$(ST_LIB)/src/stm32f4xx_dma.c \
-	$(ST_LIB)/src/stm32f4xx_flash.c \
-	$(ST_LIB)/src/stm32f4xx_gpio.c \
-	$(ST_LIB)/src/stm32f4xx_usart.c \
-	$(ST_LIB)/src/stm32f4xx_tim.c\
-	$(ST_LIB)/src/stm32f4xx_spi.c\
-	$(ST_LIB)/src/stm32f4xx_i2c.c \
-	$(ST_LIB)/src/stm32f4xx_adc.c
 
 SRC+=$(COMMON)/stdlib.c \
 	$(COMMON)/string.c \
@@ -72,10 +69,10 @@ SRC+=$(CORE)/main.c \
 	$(CORE)/vector.c
 
 CFLAGS+=-I./
-CFLAGS+=-I./lib/CMSIS/Include
-CFLAGS+=-I./lib/CMSIS/ST/STM32F4xx/Include
-CFLAGS+=-I$(ST_LIB)/inc
-CFLAGS+=-I$(ST_LIB)/inc
+CFLAGS+=-I$(CMSIS)/Include
+CFLAGS+=-I$(CMSIS)/ST/STM32F4xx/Include
+CFLAGS+=-I$(ST_HAL)/inc
+CFLAGS+=-I$(ST_HAL)/inc
 CFLAGS+=-I$(COMMON)
 CFLAGS+=-I$(DRIVER)/periph/
 CFLAGS+=-I$(DRIVER)/device/
@@ -90,15 +87,15 @@ all:$(EXECUTABLE)
 
 $(EXECUTABLE): $(STARTUP_OBJ) $(OBJS)
 	@echo "LD" $@
-	@$(CC) $(CFLAGS) $(OBJS) $(STARTUP_OBJ) $(LDLIBS) -o $@
+	@$(CC) $(CFLAGS) $(OBJS) $(STARTUP_OBJ) $(LDFLAGS) -o $@
 
 %.o: %.s 
 	@echo "CC" $@
-	@$(CC) $(CFLAGS) $^ $(LDLIBS) -c $(STARTUP)
+	@$(CC) $(CFLAGS) $^ $(LDFLAGS) -c $<
 
 %.o: %.c
 	@echo "CC" $@
-	@$(CC) $(CFLAGS) -c $< $(LDLIBS) -o $@
+	@$(CC) $(CFLAGS) -c $< $(LDFLAGS) -o $@
 
 clean:
 	rm -rf $(EXECUTABLE)
@@ -120,4 +117,4 @@ openocd:
 gdbauto:
 	cgdb -d $(GDB) -x ./debug/openocd_gdb.gdb
 
-.PHONY:all clean flash
+.PHONY:all clean flash openocd gdbauto
