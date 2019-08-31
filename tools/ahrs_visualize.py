@@ -24,18 +24,18 @@ ser = serial.Serial(
 
 q = [1.0, 0.0, 0.0, 0.0]
 
-def q_to_mat4(w, x, y ,z):
+def q_to_mat4(q0, q1, q2 ,q3):
     return np.array(
-        [[1 - 2*y*y - 2*z*z, 2*x*y - 2*z*w, 2*x*z + 2*y*w, 0],
-        [2*x*y + 2*z*w, 1 - 2*x*x - 2*z*z, 2*y*z - 2*x*w, 0],
-        [2*x*z - 2*y*w, 2*y*z + 2*x*w, 1 - 2*x*x - 2*y*y, 0],
+        [[1 - 2*q2*q2 - 2*q3*q3, 2*q1*q2 - 2*q3*q0, 2*q1*q3 + 2*q2*q0, 0],
+        [2*q1*q2 + 2*q3*q0, 1 - 2*q1*q1 - 2*q3*q3, 2*q2*q3 - 2*q1*q0, 0],
+        [2*q1*q3 - 2*q2*q0, 2*q2*q3 + 2*q1*q0, 1 - 2*q1*q1 - 2*q2*q2, 0],
         [0, 0, 0, 1] ],'f')
 
 
-def quat_to_ypr(q):
-    yaw   = math.atan2(2.0 * (q[1] * q[2] + q[0] * q[3]), q[0] * q[0] + q[1] * q[1] - q[2] * q[2] - q[3] * q[3])
-    pitch = -math.sin(2.0 * (q[1] * q[3] - q[0] * q[2]))
-    roll  = math.atan2(2.0 * (q[0] * q[1] + q[2] * q[3]), q[0] * q[0] - q[1] * q[1] - q[2] * q[2] + q[3] * q[3])
+def quat_to_ypr(q0, q1, q2, q3):
+    yaw   = math.atan2(2.0 * (q1 * q2 + q0 * q3), q0 * q0 + q1 * q1 - q2 * q2 - q3 * q3)
+    pitch = -math.sin(2.0 * (q1 * q3 - q0 * q2))
+    roll  = math.atan2(2.0 * (q0 * q1 + q2 * q3), q0 * q0 - q1 * q1 - q2 * q2 + q3 * q3)
     pitch *= 180.0 / math.pi
     yaw   *= 180.0 / math.pi
     yaw   -= -0.13  #declination at Chandrapur, Maharashtra is - 0 degress 13 min
@@ -73,7 +73,7 @@ def visualize_quaternion_attitude():
 
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
 
-        [yaw, pitch , roll] = quat_to_ypr(q)
+        [yaw, pitch , roll] = quat_to_ypr(q[0], q[1], q[2], q[3])
         gl_draw_text(40, 40, "Yaw: %f, Pitch: %f, Roll: %f" %(yaw, pitch, roll), 16)
         gl_draw_text(40, 440, "loyalty_fc attitude visualization", 18)
         gl_draw_text(40, 420, "Module to visualize quaternion or Euler angles data", 16)
