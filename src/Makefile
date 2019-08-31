@@ -4,7 +4,7 @@ CC=arm-none-eabi-gcc
 OBJCOPY=arm-none-eabi-objcopy
 GDB=arm-none-eabi-gdb
 
-SRC=
+ARCH=CM4F
 
 CFLAGS=-g -O2 -mlittle-endian -mthumb
 CFLAGS+=-mcpu=cortex-m4
@@ -17,21 +17,19 @@ CFLAGS+=-D USE_STDPERIPH_DRIVER \
 	-D __FPU_PRESENT=1 \
 	-D __FPU_USED=1 \
 	-D ARM_MATH_CM4
-
-CFLAGS+=-I./
-
 CFLAGS+=-Wl,-T,stm32_flash.ld
-
-ARCH=CM4F
 
 LDLIBS+=-Wl,--start-group -lm -Wl,--end-group
 
-CFLAGS+=-I./lib/CMSIS/Include
-
 ST_LIB=./lib/STM32F4xx_StdPeriph_Driver
-CFLAGS+=-I./lib/CMSIS/ST/STM32F4xx/Include
+COMMON=./common
+DRIVER=./driver
+CORE=./core
 
 ARM_DSP=./lib/CMSIS/DSP_Lib
+
+SRC=
+
 SRC+=$(ARM_DSP)/Source/FastMathFunctions/arm_cos_f32.c \
 	$(ARM_DSP)/Source/FastMathFunctions/arm_sin_f32.c \
 	$(ARM_DSP)/Source/MatrixFunctions/arm_mat_init_f32.c \
@@ -42,15 +40,8 @@ SRC+=$(ARM_DSP)/Source/FastMathFunctions/arm_cos_f32.c \
 	$(ARM_DSP)/Source/MatrixFunctions/arm_mat_trans_f32.c \
 	$(ARM_DSP)/Source/MatrixFunctions/arm_mat_inverse_f32.c
 
-CFLAGS+=-I$(ST_LIB)/inc
-
-COMMON=./common
-DRIVER=./driver
-CORE=./core
-
 SRC+=./lib/CMSIS/system_stm32f4xx.c
 
-CFLAGS+=-I$(ST_LIB)/inc
 SRC+=$(ST_LIB)/src/misc.c \
 	$(ST_LIB)/src/stm32f4xx_rcc.c \
 	$(ST_LIB)/src/stm32f4xx_dma.c \
@@ -62,22 +53,17 @@ SRC+=$(ST_LIB)/src/misc.c \
 	$(ST_LIB)/src/stm32f4xx_i2c.c \
 	$(ST_LIB)/src/stm32f4xx_adc.c
 
-CFLAGS+=-I$(COMMON)
 SRC+=$(COMMON)/stdlib.c \
 	$(COMMON)/string.c \
 	$(COMMON)/delay.c
 
-CFLAGS+=-I$(DRIVER)/periph/
 SRC+=$(DRIVER)/periph/uart.c \
 	$(DRIVER)/periph/i2c.c \
 	$(DRIVER)/periph/spi.c \
 	$(DRIVER)/periph/led.c \
-	$(DRIVER)/periph/timer.c
+	$(DRIVER)/periph/timer.c \
+	$(DRIVER)/device/mpu6050.c
 
-CFLAGS+=-I$(DRIVER)/device/
-SRC+=$(DRIVER)/device/mpu6050.c
-
-CFLAGS+=-I$(CORE)
 SRC+=$(CORE)/main.c \
 	$(CORE)/link.c \
 	$(CORE)/ahrs.c \
@@ -86,20 +72,29 @@ SRC+=$(CORE)/main.c \
 	$(CORE)/vector.c
 
 CFLAGS+=-I./
+CFLAGS+=-I./lib/CMSIS/Include
+CFLAGS+=-I./lib/CMSIS/ST/STM32F4xx/Include
+CFLAGS+=-I$(ST_LIB)/inc
+CFLAGS+=-I$(ST_LIB)/inc
+CFLAGS+=-I$(COMMON)
+CFLAGS+=-I$(DRIVER)/periph/
+CFLAGS+=-I$(DRIVER)/device/
+CFLAGS+=-I$(CORE)
 
 OBJS=$(SRC:.c=.o)
 
 STARTUP=./startup_stm32f4xx.s
+STARTUP_OBJ = startup_stm32f4xx.o
 
 all:$(EXECUTABLE)
 
-STARTUP_OBJ = startup_stm32f4xx.o
-
-$(STARTUP_OBJ): $(STARTUP) 
-	$(CC) $(CFLAGS) $^ $(LDLIBS) -c $(STARTUP)
-
 $(EXECUTABLE): $(STARTUP_OBJ) $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) $(STARTUP_OBJ) $(LDLIBS) -o $@
+	@echo "LD" $@
+	@$(CC) $(CFLAGS) $(OBJS) $(STARTUP_OBJ) $(LDLIBS) -o $@
+
+%.o: %.s 
+	@echo "CC" $@
+	@$(CC) $(CFLAGS) $^ $(LDLIBS) -c $(STARTUP)
 
 %.o: %.c
 	@echo "CC" $@
