@@ -1,5 +1,4 @@
 EXECUTABLE=loyalty_fc.elf
-BIN_IMAGE=loyalty_fc.bin
 
 CC=arm-none-eabi-gcc
 OBJCOPY=arm-none-eabi-objcopy
@@ -32,7 +31,7 @@ CFLAGS+=-I./lib/CMSIS/Include
 ST_LIB=./lib/STM32F4xx_StdPeriph_Driver
 CFLAGS+=-I./lib/CMSIS/ST/STM32F4xx/Include
 
-ARM_DSP=./lib/CMSIS/DSP_Lib/
+ARM_DSP=./lib/CMSIS/DSP_Lib
 SRC+=$(ARM_DSP)/Source/FastMathFunctions/arm_cos_f32.c \
 	$(ARM_DSP)/Source/FastMathFunctions/arm_sin_f32.c \
 	$(ARM_DSP)/Source/MatrixFunctions/arm_mat_init_f32.c \
@@ -88,24 +87,27 @@ SRC+=$(CORE)/main.c \
 
 CFLAGS+=-I./
 
+OBJS=$(SRC:.c=.o)
+
 STARTUP=./startup_stm32f4xx.s
 
-all:$(BIN_IMAGE)
-
-$(BIN_IMAGE):$(EXECUTABLE)
-	$(OBJCOPY) -O binary $^ $@
+all:$(EXECUTABLE)
 
 STARTUP_OBJ = startup_stm32f4xx.o
 
 $(STARTUP_OBJ): $(STARTUP) 
 	$(CC) $(CFLAGS) $^ $(LDLIBS) -c $(STARTUP)
 
-$(EXECUTABLE):$(SRC) $(STARTUP_OBJ)
-	$(CC) $(CFLAGS) $^ $(LDLIBS) -o $@
+$(EXECUTABLE): $(STARTUP_OBJ) $(OBJS)
+	$(CC) $(CFLAGS) $(OBJS) $(STARTUP_OBJ) $(LDLIBS) -o $@
+
+%.o: %.c
+	@echo "CC" $@
+	@$(CC) $(CFLAGS) -c $< $(LDLIBS) -o $@
 
 clean:
 	rm -rf $(EXECUTABLE)
-	rm -rf $(BIN_IMAGE)
+	rm -rf $(OBJS)
 
 flash:
 	openocd -f interface/stlink-v2.cfg \
