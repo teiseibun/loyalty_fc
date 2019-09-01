@@ -67,10 +67,10 @@ void ahrs_ekf_init(void)
 	_mat_(R)[0] = _mat_(R)[5] = _mat_(R)[10] = _mat_(R)[15] = 0.001;
 
 	//initialize lpf
-	mpu6050_read_unscaled_data(&imu.unscaled_accel, &imu.unscaled_gyro);
-	mpu6050_fix_bias(&imu.unscaled_accel, &imu.unscaled_gyro);
-	mpu6050_accel_convert_to_scale(&imu.unscaled_accel, &imu.raw_accel);
-	mpu6050_gyro_convert_to_scale(&imu.unscaled_gyro, &imu.raw_gyro);
+	mpu9250_read_unscaled_data(&imu.unscaled_accel, &imu.unscaled_gyro);
+	mpu9250_fix_bias(&imu.unscaled_accel, &imu.unscaled_gyro);
+	mpu9250_accel_convert_to_scale(&imu.unscaled_accel, &imu.raw_accel);
+	mpu9250_gyro_convert_to_scale(&imu.unscaled_gyro, &imu.raw_gyro);
 	accel_lpf_old = imu.raw_accel;
 	gyro_lpf_old = imu.raw_gyro;
 
@@ -289,10 +289,10 @@ void ahrs_init(void)
 void ahrs_loop(void)
 {
 	/* read sensors */
-	mpu6050_read_unscaled_data(&imu.unscaled_accel, &imu.unscaled_gyro);
-	mpu6050_fix_bias(&imu.unscaled_accel, &imu.unscaled_gyro);
-	mpu6050_accel_convert_to_scale(&imu.unscaled_accel, &imu.raw_accel);
-	mpu6050_gyro_convert_to_scale(&imu.unscaled_gyro, &imu.raw_gyro);
+	mpu9250_read_unscaled_data(&imu.unscaled_accel, &imu.unscaled_gyro);
+	mpu9250_fix_bias(&imu.unscaled_accel, &imu.unscaled_gyro);
+	mpu9250_accel_convert_to_scale(&imu.unscaled_accel, &imu.raw_accel);
+	mpu9250_gyro_convert_to_scale(&imu.unscaled_gyro, &imu.raw_gyro);
 	
 	/* apply low pass filter */
 	lpf_ema_vector3d(&imu.raw_accel, &accel_lpf_old, &imu.filtered_accel, 0.03);

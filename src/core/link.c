@@ -139,7 +139,7 @@ void telemetry_loop()
 
 	//send_imu_message();
 	//send_attitude_euler_message();
-	send_attitude_quaternion_message();
-	//send_attitude_imu_message();
+	//send_attitude_quaternion_message();
+	send_attitude_imu_message();
 	//send_ekf_message();
 }

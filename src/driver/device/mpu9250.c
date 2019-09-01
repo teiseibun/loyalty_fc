@@ -54,10 +54,10 @@ int mpu9250_init()
 	mpu9250_reset();
 	delay_ms(5);
 
-        mpu9250_write_byte(MPU9250_GYRO_CONFIG, 0x10); //Full scale 1000Hz
+        mpu9250_write_byte(MPU9250_GYRO_CONFIG, 0x10);
 	delay_ms(5);
 
-        mpu9250_write_byte(MPU9250_ACCEL_CONFIG, 0x10); //Full scale 8g
+        mpu9250_write_byte(MPU9250_ACCEL_CONFIG, 0x10);
 	delay_ms(5);
 
         return 0;

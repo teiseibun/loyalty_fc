@@ -45,11 +45,9 @@ int main()
 
 	led_init();
 	spi1_init();
-	i2c1_init();
 	uart3_init(115200);
 	delay_ms(5);
 
-	while(mpu6050_init());
 	while(mpu9250_init());
 
 	ahrs_init();

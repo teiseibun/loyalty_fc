@@ -59,7 +59,6 @@ SRC+=$(DRIVER)/periph/uart.c \
 	$(DRIVER)/periph/spi.c \
 	$(DRIVER)/periph/led.c \
 	$(DRIVER)/periph/timer.c \
-	$(DRIVER)/device/mpu6050.c \
 	$(DRIVER)/device/mpu9250.c
 
 SRC+=$(CORE)/main.c \
