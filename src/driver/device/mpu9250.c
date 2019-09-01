@@ -1,6 +1,13 @@
 #include "stm32f4xx_conf.h"
 #include "delay.h"
 #include "mpu9250.h"
+#include "vector.h"
+
+#define MPU9250_ACCEL_SCALE MPU9250A_8g
+#define MPU9250_GYRO_SCALE MPU9250G_1000dps
+
+vector3d_16_t mpu9250_accel_error_bias = {0.0f, 0.0f, 0.0f};
+vector3d_16_t mpu9250_gyro_error_bias  = {0.0f, 0.0f, 0.0f};
 
 uint8_t mpu9250_read_byte(uint8_t address)
 {
@@ -42,13 +49,75 @@ void mpu9250_reset()
 
 int mpu9250_init()
 {
-	//read mpu9250 device id
 	if(mpu9250_read_who_am_i() != 0x71) return 1;
 
-	//reset mpu9250
 	mpu9250_reset();
+	delay_ms(5);
 
+        mpu9250_write_byte(MPU9250_GYRO_CONFIG, 0x10); //Full scale 1000Hz
+	delay_ms(5);
+
+        mpu9250_write_byte(MPU9250_ACCEL_CONFIG, 0x10); //Full scale 8g
 	delay_ms(5);
 
         return 0;
+}
+
+void mpu9250_read_unscaled_data(vector3d_16_t *accel_unscaled_data, vector3d_16_t *gyro_unscaled_data)
+{
+	uint8_t buffer[14];
+
+	mpu9250_chip_select();
+
+	spi_read_write(SPI1, MPU9250_ACCEL_XOUT_H | 0x80);
+	buffer[0] = spi_read_write(SPI1, 0xff);
+	buffer[1] = spi_read_write(SPI1, 0xff);
+	buffer[2] = spi_read_write(SPI1, 0xff);
+	buffer[3] = spi_read_write(SPI1, 0xff);
+	buffer[4] = spi_read_write(SPI1, 0xff);
+	buffer[5] = spi_read_write(SPI1, 0xff);
+	buffer[6] = spi_read_write(SPI1, 0xff);
+	buffer[7] = spi_read_write(SPI1, 0xff);
+	buffer[8] = spi_read_write(SPI1, 0xff);
+	buffer[9] = spi_read_write(SPI1, 0xff);
+	buffer[10] = spi_read_write(SPI1, 0xff);
+	buffer[11] = spi_read_write(SPI1, 0xff);
+	buffer[12] = spi_read_write(SPI1, 0xff);
+	buffer[13] = spi_read_write(SPI1, 0xff);
+
+	mpu9250_chip_deselect();
+
+	accel_unscaled_data->x = (buffer[0] << 8) | buffer[1];
+	accel_unscaled_data->y = (buffer[2] << 8) | buffer[3];
+	accel_unscaled_data->z = (buffer[4] << 8) | buffer[5];
+	gyro_unscaled_data->x = (buffer[8] << 8) | buffer[9];
+	gyro_unscaled_data->y = (buffer[10] << 8) | buffer[11];
+	gyro_unscaled_data->z = (buffer[12] << 8) | buffer[13];
+}
+
+void mpu9250_fix_bias(vector3d_16_t *accel_unscaled_data,
+	vector3d_16_t *gyro_unscaled_data)
+{
+	accel_unscaled_data->x -= mpu9250_accel_error_bias.x;
+	accel_unscaled_data->y -= mpu9250_accel_error_bias.y;
+	accel_unscaled_data->z -= mpu9250_accel_error_bias.z;
+	gyro_unscaled_data->x -= mpu9250_gyro_error_bias.x;
+	gyro_unscaled_data->y -= mpu9250_gyro_error_bias.y;
+	gyro_unscaled_data->z -= mpu9250_gyro_error_bias.z;
+}
+
+void mpu9250_accel_convert_to_scale(vector3d_16_t *accel_unscaled_data,
+	vector3d_f_t *accel_scaled_data)
+{
+	 accel_scaled_data->x = accel_unscaled_data->x * MPU9250_ACCEL_SCALE;
+	 accel_scaled_data->y = accel_unscaled_data->y * MPU9250_ACCEL_SCALE;
+	 accel_scaled_data->z = accel_unscaled_data->z * MPU9250_ACCEL_SCALE;
+}
+
+void mpu9250_gyro_convert_to_scale(vector3d_16_t *gyro_unscaled_data,
+	vector3d_f_t *gyro_scaled_data)
+{
+	 gyro_scaled_data->x = gyro_unscaled_data->x * MPU9250_GYRO_SCALE;
+	 gyro_scaled_data->y = gyro_unscaled_data->y * MPU9250_GYRO_SCALE;
+	 gyro_scaled_data->z = gyro_unscaled_data->z * MPU9250_GYRO_SCALE;
 }

@@ -3,10 +3,7 @@
 
 #include "stm32f4xx_conf.h"
 #include "spi.h"
-
-#define MPU9250_SPI SPI4
-#define MPU9250_SELECT() 	GPIO_ResetBits(GPIOE,GPIO_Pin_4)
-#define MPU9250_DESELECT() 	GPIO_SetBits(GPIOE,GPIO_Pin_4)
+#include "vector.h"
 
 #define mpu9250_chip_select() GPIO_ResetBits(GPIOA, GPIO_Pin_4)
 #define mpu9250_chip_deselect() GPIO_SetBits(GPIOA, GPIO_Pin_4)
@@ -54,5 +51,15 @@
 #define MPU9250T_85degC   ((float)0.00294f)        //0.00294 deg_c/LSB
 
 int mpu9250_init();
+
+void mpu9250_read_unscaled_data(vector3d_16_t *accel_unscaled_data, vector3d_16_t *gyro_unscaled_data);
+
+void mpu9250_fix_bias(vector3d_16_t *accel_unscaled_data,
+	vector3d_16_t *gyro_unscaled_data);
+
+void mpu9250_accel_convert_to_scale(vector3d_16_t *accel_unscaled_data,
+	vector3d_f_t *accel_scaled_data);
+void mpu9250_gyro_convert_to_scale(vector3d_16_t *gyro_unscaled_data,
+	vector3d_f_t *gyro_scaled_data);
 
 #endif
