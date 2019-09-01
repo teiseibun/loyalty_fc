@@ -5,7 +5,6 @@
 #include "spi.h"
 #include "led.h"
 #include "timer.h"
-#include "mpu6050.h"
 #include "mpu9250.h"
 #include "delay.h"
 #include "link.h"

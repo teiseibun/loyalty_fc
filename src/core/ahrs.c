@@ -2,7 +2,6 @@
 
 #include "arm_math.h"
 #include "led.h"
-#include "mpu6050.h"
 #include "mpu9250.h"
 #include "ahrs.h"
 #include "vector.h"
