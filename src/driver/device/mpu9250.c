@@ -59,41 +59,40 @@ int mpu9250_init()
         mpu9250_write_byte(MPU9250_ACCEL_CONFIG, 0x10); //accel range: 8g
 	delay_ms(5);
 
-	mpu9250_write_byte(0x37, 0x10); //i2c by-pass mode (MPU9250_INT_PIN_CFG)
+	mpu9250_write_byte(MPU9250_INT_PIN_CFG, 0x10); //i2c by-pass mode
 	delay_ms(5);
-	mpu9250_write_byte(0x6A, 0x30); //i2c master mode (MPU9250_USER_CTRL)
+	mpu9250_write_byte(MPU9250_USER_CTRL, 0x30); //i2c master mode
 	delay_ms(5);
-#if 0
+
 	/* reset ak8963  */
-	mpu9250_write_byte(0x25, 0x0C); //MPU9250_I2C_SLV0_ADDR
+	mpu9250_write_byte(MPU9250_I2C_SLV4_ADDR, 0x0C);
 	delay_ms(5);
-	mpu9250_write_byte(0x26, 0x0B); //MPU9250_I2C_SLV0_REG
+	mpu9250_write_byte(MPU9250_I2C_SLV4_REG, 0x0B);
 	delay_ms(5);
-	mpu9250_write_byte(0x63, 0x01); //MPU9250_I2C_SLV0_DO
+	mpu9250_write_byte(MPU9250_I2C_SLV4_DO, 0x01);
 	delay_ms(5);
-	mpu9250_write_byte(0x27, 0x81); //MPU9250_I2C_SLV0_CTRL
-	delay_ms(100);
+	mpu9250_write_byte(MPU9250_I2C_SLV4_CTRL, 0x81);
+	delay_ms(5);
 
 	/* ak8963: 16-bits adc mode */
-	mpu9250_write_byte(0x25, 0x0C);
+	mpu9250_write_byte(MPU9250_I2C_SLV4_ADDR, 0x0C);
 	delay_ms(5);
-	mpu9250_write_byte(0x26, 0x0A);
+	mpu9250_write_byte(MPU9250_I2C_SLV4_REG, 0x0A);
 	delay_ms(5);
-	mpu9250_write_byte(0x63, 0x16);
+	mpu9250_write_byte(MPU9250_I2C_SLV4_DO, 0x16);
 	delay_ms(5);
-	mpu9250_write_byte(0x27, 0x81);
-	delay_ms(100);
-#endif
+	mpu9250_write_byte(MPU9250_I2C_SLV4_CTRL, 0x81);
+	delay_ms(5);
 
 	/* read ak8963 device id */
 	volatile uint8_t ak8963_id;
-	mpu9250_write_byte(0x31, 0x0C | 0x80); //MPU9250_I2C_SLV0_ADDR
+	mpu9250_write_byte(MPU9250_I2C_SLV4_ADDR, 0x0C | 0x80); //address: 0x31
 	delay_ms(5);
-	mpu9250_write_byte(0x32, 0x00); //MPU9250_I2C_SLV0_REG
+	mpu9250_write_byte(MPU9250_I2C_SLV4_REG, 0x00); //address: 0x32
 	delay_ms(5);
-	mpu9250_write_byte(0x34, 0x80); //MPU9250_I2C_SLV0_CTRL
+	mpu9250_write_byte(MPU9250_I2C_SLV4_CTRL, 0x80); //address: 0x34
 	delay_ms(5);
-	ak8963_id = mpu9250_read_byte(0x35); //MPU9250_EXT_SENS_DATA_00
+	ak8963_id = mpu9250_read_byte(MPU9250_I2C_SLV4_DI); //address: 0x35
 	delay_ms(5);
 	if(ak8963_id != 0x48) return 1;
 
