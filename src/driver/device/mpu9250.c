@@ -44,7 +44,7 @@ uint8_t mpu9250_read_who_am_i()
 void mpu9250_reset()
 {
         mpu9250_write_byte(MPU9250_PWR_MGMT_1, 0x80);
-	delay_ms(500);
+	delay_ms(100);
 }
 
 int mpu9250_init()
@@ -54,11 +54,51 @@ int mpu9250_init()
 	mpu9250_reset();
 	delay_ms(5);
 
-        mpu9250_write_byte(MPU9250_GYRO_CONFIG, 0x10);
+        mpu9250_write_byte(MPU9250_GYRO_CONFIG, 0x10); //gyro: 1000Hz
+	delay_ms(5);
+        mpu9250_write_byte(MPU9250_ACCEL_CONFIG, 0x10); //accel range: 8g
 	delay_ms(5);
 
-        mpu9250_write_byte(MPU9250_ACCEL_CONFIG, 0x10);
+#if 0
+	mpu9250_write_byte(0x37, 0x12); //i2c by-pass mode (MPU9250_INT_PIN_CFG)
 	delay_ms(5);
+	mpu9250_write_byte(0x6A, 0x30); //i2c master mode (MPU9250_USER_CTRL)
+	delay_ms(5);
+	mpu9250_write_byte(0x24, 0x0D); //i2c clk: 4000kps (MPU9250_I2C_MST_CTRL)
+	delay_ms(5);
+
+	/* reset ak8963  */
+	mpu9250_write_byte(0x25, 0x0C); //MPU9250_I2C_SLV0_ADDR
+	delay_ms(5);
+	mpu9250_write_byte(0x26, 0x0B); //MPU9250_I2C_SLV0_REG
+	delay_ms(5);
+	mpu9250_write_byte(0x63, 0x01); //MPU9250_I2C_SLV0_DO
+	delay_ms(5);
+	mpu9250_write_byte(0x27, 0x81); //MPU9250_I2C_SLV0_CTRL
+	delay_ms(100);
+
+	/* ak8963: 16-bits adc mode */
+	mpu9250_write_byte(0x25, 0x0C);
+	delay_ms(5);
+	mpu9250_write_byte(0x26, 0x0A);
+	delay_ms(5);
+	mpu9250_write_byte(0x63, 0x16);
+	delay_ms(5);
+	mpu9250_write_byte(0x27, 0x81);
+	delay_ms(100);
+
+	/* read ak8963 device id */
+	volatile uint8_t ak8963_id;
+	mpu9250_write_byte(0x25, 0x0C | 0x80); //MPU9250_I2C_SLV0_ADDR
+	delay_ms(5);
+	mpu9250_write_byte(0x26, 0x00); //MPU9250_I2C_SLV0_REG
+	delay_ms(5);
+	mpu9250_write_byte(0x27, 0x81); //MPU9250_I2C_SLV0_CTRL
+	delay_ms(5);
+	ak8963_id = mpu9250_read_byte(0x49); //MPU9250_EXT_SENS_DATA_00
+	delay_ms(100);
+	if(ak8963_id != 0x48) return 1;
+#endif
 
         return 0;
 }
