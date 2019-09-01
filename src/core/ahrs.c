@@ -121,16 +121,32 @@ void quat_to_euler(float *q, attitude_t *euler)
 
 void convert_gravity_to_quat(vector3d_f_t *a, float *q)
 {
+	float _sqrt;
+
 	if(a->z >= 0.0f) {
-		q[0] = sqrt(0.5f * (a->z + 1.0f));
-		q[1] = -a->y / sqrt(2.0f * (a->z + 1.0f));
-		q[2] = a->x / sqrt(2.0f * (a->z + 1.0f));
+		//q0
+		arm_sqrt_f32(0.5f * (a->z + 1.0f), &_sqrt);
+		q[0] = _sqrt;
+		//q1
+		arm_sqrt_f32(2.0f * (a->z + 1.0f), &_sqrt);
+		q[1] = -a->y / _sqrt;
+		//q2
+		arm_sqrt_f32(2.0f * (a->z + 1.0f), &_sqrt);
+		q[2] = a->x / _sqrt;
+		//q3
 		q[3] = 0.0f;
 	} else {
-		q[0] = -a->y / sqrt(2.0f * (1.0f - a->z));
-		q[1] = sqrt((1.0f - a->z) * 0.5f);
+		//q0
+		arm_sqrt_f32(2.0f * (1.0f - a->z), &_sqrt);
+		q[0] = -a->y / _sqrt;
+		//q1
+		arm_sqrt_f32((1.0f - a->z) * 0.5f, &_sqrt);
+		q[1] = _sqrt;
+		//q2
 		q[2] = 0.0f;
-		q[3] = a->x / sqrt(2.0f * (1.0f - a->z));
+		//q3
+		arm_sqrt_f32(2.0f * (1.0f - a->z), &_sqrt);
+		q[3] = a->x / _sqrt;
 	}
 
 	quat_normalize(q);
