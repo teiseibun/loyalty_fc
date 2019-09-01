@@ -6,6 +6,7 @@
 #include "led.h"
 #include "timer.h"
 #include "mpu6050.h"
+#include "mpu9250.h"
 #include "delay.h"
 #include "link.h"
 #include "ahrs.h"
@@ -43,11 +44,13 @@ int main()
         NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
 
 	led_init();
+	spi1_init();
 	i2c1_init();
 	uart3_init(115200);
 	delay_ms(5);
 
 	while(mpu6050_init());
+	while(mpu9250_init());
 
 	ahrs_init();
 
