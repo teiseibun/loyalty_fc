@@ -52,48 +52,48 @@ int mpu9250_init()
 	if(mpu9250_read_who_am_i() != 0x71) return 1;
 
 	mpu9250_reset();
-	delay_ms(5);
+	delay_ms(50);
 
         mpu9250_write_byte(MPU9250_GYRO_CONFIG, 0x10); //gyro: 1000Hz
-	delay_ms(5);
+	delay_ms(50);
         mpu9250_write_byte(MPU9250_ACCEL_CONFIG, 0x10); //accel range: 8g
-	delay_ms(5);
+	delay_ms(50);
 
 	mpu9250_write_byte(MPU9250_INT_PIN_CFG, 0x10); //i2c by-pass mode
-	delay_ms(5);
+	delay_ms(50);
 	mpu9250_write_byte(MPU9250_USER_CTRL, 0x30); //i2c master mode
-	delay_ms(5);
+	delay_ms(50);
 
 	/* reset ak8963  */
 	mpu9250_write_byte(MPU9250_I2C_SLV4_ADDR, 0x0C);
-	delay_ms(5);
+	delay_ms(50);
 	mpu9250_write_byte(MPU9250_I2C_SLV4_REG, 0x0B);
-	delay_ms(5);
+	delay_ms(50);
 	mpu9250_write_byte(MPU9250_I2C_SLV4_DO, 0x01);
-	delay_ms(5);
+	delay_ms(50);
 	mpu9250_write_byte(MPU9250_I2C_SLV4_CTRL, 0x81);
-	delay_ms(5);
+	delay_ms(50);
 
 	/* ak8963: 16-bits adc mode */
 	mpu9250_write_byte(MPU9250_I2C_SLV4_ADDR, 0x0C);
-	delay_ms(5);
+	delay_ms(50);
 	mpu9250_write_byte(MPU9250_I2C_SLV4_REG, 0x0A);
-	delay_ms(5);
+	delay_ms(50);
 	mpu9250_write_byte(MPU9250_I2C_SLV4_DO, 0x16);
-	delay_ms(5);
+	delay_ms(50);
 	mpu9250_write_byte(MPU9250_I2C_SLV4_CTRL, 0x81);
-	delay_ms(5);
+	delay_ms(50);
 
 	/* read ak8963 device id */
 	volatile uint8_t ak8963_id;
 	mpu9250_write_byte(MPU9250_I2C_SLV4_ADDR, 0x0C | 0x80); //address: 0x31
-	delay_ms(5);
+	delay_ms(50);
 	mpu9250_write_byte(MPU9250_I2C_SLV4_REG, 0x00); //address: 0x32
-	delay_ms(5);
+	delay_ms(50);
 	mpu9250_write_byte(MPU9250_I2C_SLV4_CTRL, 0x80); //address: 0x34
-	delay_ms(5);
+	delay_ms(50);
 	ak8963_id = mpu9250_read_byte(MPU9250_I2C_SLV4_DI); //address: 0x35
-	delay_ms(5);
+	delay_ms(50);
 	if(ak8963_id != 0x48) return 1;
 
         return 0;
@@ -101,6 +101,9 @@ int mpu9250_init()
 
 void mpu9250_read_unscaled_data(vector3d_16_t *accel_unscaled_data, vector3d_16_t *gyro_unscaled_data)
 {
+	uint16_t temp;
+	vector3d_16_t mag_unscaled_data;
+
 	uint8_t buffer[14];
 
 	mpu9250_chip_select();
@@ -123,12 +126,26 @@ void mpu9250_read_unscaled_data(vector3d_16_t *accel_unscaled_data, vector3d_16_
 
 	mpu9250_chip_deselect();
 
+	//accelerometer
 	accel_unscaled_data->x = (buffer[0] << 8) | buffer[1];
 	accel_unscaled_data->y = (buffer[2] << 8) | buffer[3];
 	accel_unscaled_data->z = (buffer[4] << 8) | buffer[5];
+#if 0
+	//temperature
+	temp = (buffer[6] << 8) | buffer[7];
+#endif
+	//gyroscope
 	gyro_unscaled_data->x = (buffer[8] << 8) | buffer[9];
 	gyro_unscaled_data->y = (buffer[10] << 8) | buffer[11];
 	gyro_unscaled_data->z = (buffer[12] << 8) | buffer[13];
+#if 0
+	//magnetometer
+	uint8_t ak8963_status1 = buffer[14];
+	uint8_t ak8963_status2 = buffer[21];
+	mag_unscaled_data.x = (buffer[16] << 8) | buffer[15];
+	mag_unscaled_data.y = (buffer[18] << 8) | buffer[17];
+	mag_unscaled_data.z = (buffer[20] << 8) | buffer[19];
+#endif
 }
 
 void mpu9250_fix_bias(vector3d_16_t *accel_unscaled_data,
