@@ -1,25 +1,25 @@
 #include "stm32f4xx_conf.h"
 #include "timer.h"
 
-void timer2_init()
+void timer1_init()
 {
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
+        RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM1, ENABLE);
 
-	/* 84Mhz / (336 * 100) = 100hz */
-	TIM_TimeBaseInitTypeDef TimeBaseInitStruct = {
-		.TIM_Period = 8400 - 1,
-		.TIM_Prescaler = 100 - 1,
-		.TIM_CounterMode = TIM_CounterMode_Up
-	};
-	TIM_TimeBaseInit(TIM2, &TimeBaseInitStruct);
+        /* 168Mhz / (8400 * 200) = 100hz */
+        TIM_TimeBaseInitTypeDef TimeBaseInitStruct = {
+                .TIM_Period = 8400 - 1,
+                .TIM_Prescaler = 200 - 1,
+                .TIM_CounterMode = TIM_CounterMode_Up
+        };
+        TIM_TimeBaseInit(TIM1, &TimeBaseInitStruct);
 
-	NVIC_InitTypeDef NVIC_InitStruct = {
-		.NVIC_IRQChannel = TIM2_IRQn,
-		.NVIC_IRQChannelPreemptionPriority = 0,
-		.NVIC_IRQChannelCmd = ENABLE
-	};
-	NVIC_Init(&NVIC_InitStruct);
+        NVIC_InitTypeDef NVIC_InitStruct = {
+                .NVIC_IRQChannel = TIM1_UP_TIM10_IRQn,
+                .NVIC_IRQChannelPreemptionPriority = 5,
+                .NVIC_IRQChannelCmd = ENABLE
+        };
+        NVIC_Init(&NVIC_InitStruct);
 
-	TIM_ITConfig(TIM2, TIM_IT_Update, ENABLE);
-	TIM_Cmd(TIM2, ENABLE);
+        TIM_ITConfig(TIM1, TIM_IT_Update, ENABLE);
+        TIM_Cmd(TIM1, ENABLE);
 }

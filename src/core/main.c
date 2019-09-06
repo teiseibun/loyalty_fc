@@ -21,9 +21,9 @@ void SysTick_Handler()
 	led_off(LED1);
 }
 
-void TIM2_IRQHandler()
+void TIM1_UP_TIM10_IRQHandler()
 {
-	if(TIM_GetITStatus(TIM2, TIM_IT_Update) == SET) {
+	if(TIM_GetITStatus(TIM1, TIM_IT_Update) == SET) {
 		//toggle in 1Hz
 		if(cnt == 0) {
 			led_toggle(LED2);
@@ -34,7 +34,7 @@ void TIM2_IRQHandler()
 
 		telemetry_loop();
 
-		TIM_ClearITPendingBit(TIM2, TIM_FLAG_Update);
+		TIM_ClearITPendingBit(TIM1, TIM_FLAG_Update);
 	}
 }
 
@@ -52,7 +52,7 @@ int main()
 	ahrs_init();
 
 	SysTick_Config(SystemCoreClock / 500); //500Hz flight controller main loop
-	timer2_init(); //100Hz telemetry loop
+	timer1_init(); //100Hz telemetry loop
 
 	while(1);
 

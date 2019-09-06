@@ -58,7 +58,7 @@ int mpu9250_init()
 	delay_ms(50);
         mpu9250_write_byte(MPU9250_ACCEL_CONFIG, 0x10); //accel range: 8g
 	delay_ms(50);
-
+#if 0
 	mpu9250_write_byte(MPU9250_INT_PIN_CFG, 0x10); //i2c by-pass mode
 	delay_ms(50);
 	mpu9250_write_byte(MPU9250_USER_CTRL, 0x30); //i2c master mode
@@ -95,7 +95,7 @@ int mpu9250_init()
 	ak8963_id = mpu9250_read_byte(MPU9250_I2C_SLV4_DI); //address: 0x35
 	delay_ms(50);
 	if(ak8963_id != 0x48) return 1;
-
+#endif
         return 0;
 }
 
