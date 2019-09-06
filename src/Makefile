@@ -52,7 +52,8 @@ SRC+=$(ARM_DSP)/Source/FastMathFunctions/arm_cos_f32.c \
 
 SRC+=$(COMMON)/stdlib.c \
 	$(COMMON)/string.c \
-	$(COMMON)/delay.c
+	$(COMMON)/delay.c \
+	$(COMMON)/bound.c
 
 SRC+=$(DRIVER)/periph/uart.c \
 	$(DRIVER)/periph/i2c.c \
@@ -61,6 +62,7 @@ SRC+=$(DRIVER)/periph/uart.c \
 	$(DRIVER)/periph/timer.c \
 	$(DRIVER)/periph/pwm.c \
 	$(DRIVER)/periph/pwm_capture.c \
+	$(DRIVER)/device/radio_control.c \
 	$(DRIVER)/device/rc_receiver.c \
 	$(DRIVER)/device/motor.c \
 	$(DRIVER)/device/mpu9250.c \
