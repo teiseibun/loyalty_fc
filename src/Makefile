@@ -62,6 +62,7 @@ SRC+=$(DRIVER)/periph/uart.c \
 	$(DRIVER)/periph/pwm.c \
 	$(DRIVER)/periph/pwm_capture.c \
 	$(DRIVER)/device/rc_receiver.c \
+	$(DRIVER)/device/motor.c \
 	$(DRIVER)/device/mpu9250.c \
 	$(DRIVER)/device/hmc5983.c
 

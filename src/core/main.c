@@ -5,7 +5,10 @@
 #include "spi.h"
 #include "led.h"
 #include "timer.h"
+#include "pwm.h"
+#include "pwm_capture.h"
 #include "mpu9250.h"
+#include "motor.h"
 #include "delay.h"
 #include "link.h"
 #include "ahrs.h"
@@ -46,6 +49,12 @@ int main()
 	spi1_init();
 	uart3_init(115200);
 	delay_ms(5);
+	pwm_timer4_init();
+	pwm_timer5_init();
+	pwm_capture_timer2_init();
+	pwm_capture_timer3_init();
+	pwm_capture_timer8_init();
+	motor_init();
 
 	while(mpu9250_init());
 
