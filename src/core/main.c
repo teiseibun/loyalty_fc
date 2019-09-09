@@ -7,6 +7,8 @@
 #include "timer.h"
 #include "pwm.h"
 #include "pwm_capture.h"
+#include "rc_receiver.h"
+#include "radio_control.h"
 #include "mpu9250.h"
 #include "motor.h"
 #include "delay.h"
@@ -15,10 +17,13 @@
 
 volatile int cnt = 100;
 
+radio_control_t rc;
+
 void SysTick_Handler()
 {
 	led_on(LED1);
 
+	radio_control_update(&rc);
 	ahrs_loop();
 
 	led_off(LED1);
@@ -36,6 +41,9 @@ void TIM1_UP_TIM10_IRQHandler()
 		}
 
 		telemetry_loop();
+
+		//debug_print_radio_control_expect_value(&rc);
+		//debug_print_radio_control_value();
 
 		TIM_ClearITPendingBit(TIM1, TIM_FLAG_Update);
 	}
