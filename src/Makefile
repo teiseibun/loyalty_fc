@@ -73,7 +73,8 @@ SRC+=$(CORE)/main.c \
 	$(CORE)/ahrs.c \
 	$(CORE)/lpf.c \
 	$(CORE)/matrix.c \
-	$(CORE)/vector.c
+	$(CORE)/vector.c \
+	$(CORE)/controller.c
 
 CFLAGS+=-I./
 CFLAGS+=-I$(CMSIS)/Include
