@@ -61,9 +61,9 @@ int radio_control_safety_check(radio_control_t *radio_control_data)
 void debug_print_radio_control_expect_value(radio_control_t *radio_control_data)
 {
 	if(radio_control_data->safety_status == ENGINE_ON) {
-		printf("safety on: disarmed\n\r");
+		printf("armed\n\r");
 	} else {
-		printf("safety off: armed\n\r");
+		printf("disarmed\n\r");
 	}
 
 	printf("rc roll: %f\n\r", radio_control_data->roll_angle);

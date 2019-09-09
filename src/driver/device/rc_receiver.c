@@ -235,7 +235,7 @@ void debug_print_radio_control_value()
 	printf("rc ch3 (throttle): %d\n\r", rc_value[THROTTLE_CHANNEL]);
 	printf("rc ch4 (yaw): %d\n\r", rc_value[YAW_CHANNEL]);
 	printf("rc ch5 (safety): %d\n\r", rc_value[SAFETY_CHANNEL]);
-	printf("rc reserve: %d", rc_value[RESERVE_CHANNEL_1]);
+	printf("rc reserved: %d", rc_value[RESERVE_CHANNEL_1]);
 
 	delay_ms(100);
 	printf("\x1b[H\x1b[2J");
