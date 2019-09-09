@@ -228,17 +228,16 @@ int get_radio_control_value(int channel)
 	return rc_value[channel];
 }
 
-#if 0
 void debug_print_radio_control_value()
 {
-	debug_print("roll: %d\n\r", rc_value[ROLL_CHANNEL]);
-	debug_print("pitch: %d\n\r", rc_value[PITCH_CHANNEL]);
-	debug_print("yaw: %d\n\r", rc_value[YAW_CHANNEL]);
-	debug_print("throttle: %d\n\r", rc_value[THROTTLE_CHANNEL]);
-	debug_print("safety: %d\n\r", rc_value[SAFETY_CHANNEL]);
-	debug_print("reserve-1: %d", rc_value[RESERVE_CHANNEL_1]);
+	printf("rc ch1 (roll): %d\n\r", rc_value[ROLL_CHANNEL]);
+	printf("rc ch2 (pitch): %d\n\r", rc_value[PITCH_CHANNEL]);
+	printf("rc ch3 (throttle): %d\n\r", rc_value[THROTTLE_CHANNEL]);
+	printf("rc ch4 (yaw): %d\n\r", rc_value[YAW_CHANNEL]);
+	printf("rc ch5 (safety): %d\n\r", rc_value[SAFETY_CHANNEL]);
+	printf("rc reserve: %d", rc_value[RESERVE_CHANNEL_1]);
 
-	delay_ms(50);
-	debug_print("\x1b[H\x1b[2J");
+	delay_ms(100);
+	printf("\x1b[H\x1b[2J");
+	delay_ms(1);
 }
-#endif
