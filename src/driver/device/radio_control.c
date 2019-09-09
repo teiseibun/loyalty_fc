@@ -58,23 +58,20 @@ int radio_control_safety_check(radio_control_t *radio_control_data)
 	return 0; //Pass
 }
 
-#if 0
 void debug_print_radio_control_expect_value(radio_control_t *radio_control_data)
 {
 	if(radio_control_data->safety_status == ENGINE_ON) {
-		debug_print("Safety status: Engine ON\n\r");
+		printf("safety on: disarmed\n\r");
 	} else {
-		debug_print("Safety status: Engine OFF\n\r");
+		printf("safety off: armed\n\r");
 	}
 
+	printf("rc roll: %f\n\r", radio_control_data->roll_angle);
+	printf("rc pitch: %f\n\r", radio_control_data->pitch_angle);
+	printf("rc yaw: %f\n\r", radio_control_data->yaw_rate);
+	printf("rc throttle: %f\n\r", radio_control_data->throttle_scale);
 
-	debug_print("Expect roll: %f\n\r", radio_control_data->roll_angle);
-	debug_print("Expect pitch: %f\n\r", radio_control_data->pitch_angle);
-	debug_print("Expect yaw rate: %f\n\r", radio_control_data->yaw_rate);
-	debug_print("Expect throttle scale: %f\n\r", radio_control_data->throttle_scale);
-
-
-	delay_ms(50);
-	debug_print("\x1b[H\x1b[2J");
+	delay_ms(100);
+	printf("\x1b[H\x1b[2J");
+	delay_ms(1);
 }
-#endif

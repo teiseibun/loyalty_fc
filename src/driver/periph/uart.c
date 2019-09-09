@@ -89,6 +89,8 @@ uint8_t uart3_getc()
 
 int printf(const char *format, ...)
 {
+	while(uart3_tx_busy() == true);
+
 	char str[128];
 	va_list para;
 	va_start(para, format);
