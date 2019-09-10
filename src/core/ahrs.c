@@ -322,7 +322,7 @@ void ahrs_estimate_euler(float *roll, float *pitch, float *yaw)
 	attitude_t euler;	
 	quat_to_euler(&_mat_(x_posteriori)[0], &euler);
 
-	*roll = euler.roll;
-	*pitch = euler.pitch;
-	*yaw = euler.yaw;
+	*roll = rad_to_deg(euler.roll);
+	*pitch = rad_to_deg(euler.pitch);
+	*yaw = rad_to_deg(euler.yaw);
 }
