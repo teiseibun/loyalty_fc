@@ -14,4 +14,7 @@ typedef struct {
 	float output_min;
 } pid_control_t;
 
+void motor_control(volatile float throttle_scale, uint16_t roll_pid_output, uint16_t pitch_pid_output,
+		   uint16_t yaw_pid_output);
+
 #endif

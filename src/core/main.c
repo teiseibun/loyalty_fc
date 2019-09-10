@@ -14,6 +14,7 @@
 #include "delay.h"
 #include "link.h"
 #include "ahrs.h"
+#include "controller.h"
 
 volatile int cnt = 100;
 
@@ -28,6 +29,8 @@ void SysTick_Handler()
 
 	if(rc.safety_status == ENGINE_ON) {
 		led_on(LED3);
+
+		motor_control(rc.throttle_scale, 0, 0, 0);
 	} else {
 		led_off(LED3);
 	}
