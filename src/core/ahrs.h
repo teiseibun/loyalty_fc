@@ -34,7 +34,8 @@ typedef struct {
 } ahrs_t;
 
 void ahrs_init(void);
-void ahrs_loop(void);
+void ahrs_estimate_euler(float *roll, float *pitch, float *yaw);
+
 
 void quat_normalize(float *q);
 

@@ -299,7 +299,7 @@ void ahrs_init(void)
 	ahrs_ekf_init();
 }
 
-void ahrs_loop(void)
+void ahrs_estimate_euler(float *roll, float *pitch, float *yaw)
 {
 	/* read sensors */
 	mpu9250_read_unscaled_data(&imu.unscaled_accel, &imu.unscaled_gyro);
@@ -318,4 +318,11 @@ void ahrs_loop(void)
 #if AHRS_SELECT == AHRS_SELECT_CF
 	ahrs_complementary_filter_loop();
 #endif
+
+	attitude_t euler;	
+	quat_to_euler(&_mat_(x_posteriori)[0], &euler);
+
+	*roll = euler.roll;
+	*pitch = euler.pitch;
+	*yaw = euler.yaw;
 }
