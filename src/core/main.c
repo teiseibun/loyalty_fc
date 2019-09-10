@@ -26,6 +26,12 @@ void SysTick_Handler()
 	radio_control_update(&rc);
 	ahrs_loop();
 
+	if(rc.safety_status == ENGINE_ON) {
+		led_on(LED3);
+	} else {
+		led_off(LED3);
+	}
+
 	led_off(LED1);
 }
 
@@ -49,7 +55,24 @@ void TIM1_UP_TIM10_IRQHandler()
 	}
 }
 
-int main()
+void rc_init_protection(void)
+{
+	int led_blink_count = 50000;
+
+	do {
+		radio_control_update(&rc);
+
+		//blink leds  if rc channels not reset
+		if(--led_blink_count == 0) {
+			led_toggle(LED1);
+			led_toggle(LED2);
+			led_toggle(LED3);
+			led_blink_count = 50000;
+		}
+	} while(radio_control_safety_check(&rc));
+}
+
+int main(void)
 {
         NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
 
@@ -63,6 +86,7 @@ int main()
 	pwm_capture_timer3_init();
 	pwm_capture_timer8_init();
 	motor_init();
+	rc_init_protection();
 
 	while(mpu9250_init());
 
@@ -74,6 +98,4 @@ int main()
 	while(1);
 
 	return 0;
-
-
 }
