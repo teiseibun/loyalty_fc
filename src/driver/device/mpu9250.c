@@ -47,17 +47,37 @@ void mpu9250_reset()
 	delay_ms(100);
 }
 
+void mpu9250_bias_calculate(void)
+{
+	vector3d_16_t accel_unscaled, gyro_unscaled;
+	vector3d_f_t accel_scaled, gyro_scaled;
+
+	int count = 10000;
+
+	int i;
+	for(i = 0; i < count; i++) {
+		mpu9250_read_unscaled_data(&accel_unscaled, &gyro_unscaled);
+		mpu9250_gyro_convert_to_scale(&gyro_unscaled, &gyro_scaled);
+
+		mpu9250_gyro_error_bias.x += gyro_scaled.x / (float)count;
+		mpu9250_gyro_error_bias.x += gyro_scaled.y / (float)count;
+		mpu9250_gyro_error_bias.x += gyro_scaled.z / (float)count;
+	}
+}
+
 int mpu9250_init()
 {
 	if(mpu9250_read_who_am_i() != 0x71) return 1;
 
 	mpu9250_reset();
-	delay_ms(50);
+	delay_ms(5);
 
         mpu9250_write_byte(MPU9250_GYRO_CONFIG, 0x10); //gyro: 1000Hz
-	delay_ms(50);
+	delay_ms(5);
         mpu9250_write_byte(MPU9250_ACCEL_CONFIG, 0x10); //accel range: 8g
-	delay_ms(50);
+	delay_ms(5);
+
+	mpu9250_bias_calculate();
 #if 0
 	mpu9250_write_byte(MPU9250_INT_PIN_CFG, 0x10); //i2c by-pass mode
 	delay_ms(50);
