@@ -9,7 +9,7 @@
 #include "uart.h"
 #include "matrix.h"
 
-#define AHRS_SELECT AHRS_SELECT_CF
+#define AHRS_SELECT AHRS_SELECT_EKF
 
 #define dt 0.002 //0.002s = 500Hz
 

@@ -163,6 +163,16 @@ class serial_plotter_class:
                 self.create_curve('d term', 'blue')
         	self.create_curve('pid final', 'purple')
         	self.show_subplot()
+        elif message_id == 6:
+         	plt.subplot(111)
+        	plt.ylabel('motor [thrust %]')
+        	plt.ylim([-20, 120])
+        	self.create_curve('m1', 'red')
+                self.create_curve('m2', 'orange')
+        	self.create_curve('m3', 'yellow')
+        	self.create_curve('m4', 'purple')
+        	self.show_subplot()
+
 
     def show_graph(self):
 	ani = animation.FuncAnimation(self.figure, self.animate, np.arange(0, 200), \

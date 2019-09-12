@@ -15,6 +15,8 @@ extern pid_control_t pid_roll;
 extern pid_control_t pid_pitch;
 extern pid_control_t pid_yaw_rate;
 
+extern float motor1, motor2, motor3, motor4;
+
 extern float _mat_(P)[4 * 4];
 extern float _mat_(K)[4 * 4];
 extern float _mat_(x_posteriori)[4 * 1];
@@ -137,6 +139,21 @@ void send_ekf_message(void)
 	send_onboard_data(payload, payload_size);
 }
 
+void send_motor_message(void)
+{
+	uint8_t payload[512] = {0}; //~64 float
+	int payload_size = 3; //reserved for header message
+
+	payload[2] = MESSAGE_ID_MOTOR;
+
+	payload_size += pack_float(&motor1, payload + payload_size);
+	payload_size += pack_float(&motor2, payload + payload_size);
+	payload_size += pack_float(&motor3, payload + payload_size);
+	payload_size += pack_float(&motor4, payload + payload_size);
+
+	send_onboard_data(payload, payload_size);
+}
+
 void send_pid_debug(void)
 {
 	uint8_t payload[512] = {0}; //~64 float
@@ -166,4 +183,5 @@ void telemetry_loop()
 	//send_attitude_imu_message();
 	//send_ekf_message();
 	//send_pid_debug();
+	//send_motor_message();
 }

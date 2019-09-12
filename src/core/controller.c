@@ -4,6 +4,8 @@
 #include "uart.h"
 #include "delay.h"
 
+float motor1, motor2, motor3, motor4;
+
 void attitude_pd_control(pid_control_t *pid, float ahrs_attitude,
 			 float setpoint_attitude, float angular_velocity)
 {
@@ -42,20 +44,29 @@ void motor_control(volatile float throttle_percentage, float roll_ctrl_precentag
 	float pitch_pwm = pitch_ctrl_precentage * (float)percentage_to_pwm;
 	float yaw_pwm = yaw_ctrl_precentage * (float)percentage_to_pwm;
 
-	float motor1, motor2, motor3, motor4;
+	float m1_pwm, m2_pwm, m3_pwm, m4_pwm;
 
-	motor1 = power_basis + roll_pwm + pitch_pwm + yaw_pwm;
-	motor2 = power_basis - roll_pwm + pitch_pwm - yaw_pwm;
-	motor3 = power_basis - roll_pwm - pitch_pwm + yaw_pwm;
-	motor4 = power_basis + roll_pwm - pitch_pwm - yaw_pwm;
+	m1_pwm = power_basis + roll_pwm + pitch_pwm + yaw_pwm;
+	m2_pwm = power_basis - roll_pwm + pitch_pwm - yaw_pwm;
+	m3_pwm = power_basis - roll_pwm - pitch_pwm + yaw_pwm;
+	m4_pwm = power_basis + roll_pwm - pitch_pwm - yaw_pwm;
+	bound_float(&m1_pwm, MOTOR_PULSE_MAX, MOTOR_PULSE_MIN);
+	bound_float(&m2_pwm, MOTOR_PULSE_MAX, MOTOR_PULSE_MIN);
+	bound_float(&m3_pwm, MOTOR_PULSE_MAX, MOTOR_PULSE_MIN);
+	bound_float(&m4_pwm, MOTOR_PULSE_MAX, MOTOR_PULSE_MIN);
 
-	bound_float(&motor1, MOTOR_PULSE_MAX, MOTOR_PULSE_MIN);
-	bound_float(&motor2, MOTOR_PULSE_MAX, MOTOR_PULSE_MIN);
-	bound_float(&motor3, MOTOR_PULSE_MAX, MOTOR_PULSE_MIN);
-	bound_float(&motor4, MOTOR_PULSE_MAX, MOTOR_PULSE_MIN);
+	//generate debug message
+	motor1 = (m1_pwm - MOTOR_PULSE_MIN) / percentage_to_pwm;
+	motor2 = (m2_pwm - MOTOR_PULSE_MIN) / percentage_to_pwm;
+	motor3 = (m3_pwm - MOTOR_PULSE_MIN) / percentage_to_pwm;
+	motor4 = (m4_pwm - MOTOR_PULSE_MIN) / percentage_to_pwm;
+	bound_float(&motor1, 100.0f, 0.0f);
+	bound_float(&motor2, 100.0f, 0.0f);
+	bound_float(&motor3, 100.0f, 0.0f);
+	bound_float(&motor4, 100.0f, 0.0f);
 
-	set_motor_pwm_pulse(MOTOR1, (uint16_t)motor1);
-	set_motor_pwm_pulse(MOTOR2, (uint16_t)motor2);
-	set_motor_pwm_pulse(MOTOR3, (uint16_t)motor3);
-	set_motor_pwm_pulse(MOTOR4, (uint16_t)motor4);
+	set_motor_pwm_pulse(MOTOR1, (uint16_t)m1_pwm);
+	set_motor_pwm_pulse(MOTOR2, (uint16_t)m2_pwm);
+	set_motor_pwm_pulse(MOTOR3, (uint16_t)m3_pwm);
+	set_motor_pwm_pulse(MOTOR4, (uint16_t)m4_pwm);
 }
