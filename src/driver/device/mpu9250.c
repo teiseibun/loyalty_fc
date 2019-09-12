@@ -1,5 +1,6 @@
 #include "stm32f4xx_conf.h"
 #include "delay.h"
+#include "uart.h"
 #include "mpu9250.h"
 #include "vector.h"
 
@@ -50,19 +51,23 @@ void mpu9250_reset()
 void mpu9250_bias_calculate(void)
 {
 	vector3d_16_t accel_unscaled, gyro_unscaled;
-	vector3d_f_t accel_scaled, gyro_scaled;
+
+	vector3d_f_t gyro_bias_float = {.x = 0.0f, .y = 0.0f, .z = 0.0f};
 
 	int count = 10000;
 
 	int i;
 	for(i = 0; i < count; i++) {
 		mpu9250_read_unscaled_data(&accel_unscaled, &gyro_unscaled);
-		mpu9250_gyro_convert_to_scale(&gyro_unscaled, &gyro_scaled);
 
-		mpu9250_gyro_error_bias.x += gyro_scaled.x / (float)count;
-		mpu9250_gyro_error_bias.x += gyro_scaled.y / (float)count;
-		mpu9250_gyro_error_bias.x += gyro_scaled.z / (float)count;
+		gyro_bias_float.x += (float)gyro_unscaled.x / (float)count;
+		gyro_bias_float.y += (float)gyro_unscaled.y / (float)count;
+		gyro_bias_float.z += (float)gyro_unscaled.z / (float)count;
 	}
+
+	mpu9250_gyro_error_bias.x = (int16_t)gyro_bias_float.x;
+	mpu9250_gyro_error_bias.y = (int16_t)gyro_bias_float.y;
+	mpu9250_gyro_error_bias.z = (int16_t)gyro_bias_float.z;
 }
 
 int mpu9250_init()
