@@ -9,7 +9,7 @@
 #include "uart.h"
 #include "matrix.h"
 
-#define AHRS_SELECT AHRS_SELECT_EKF
+#define AHRS_SELECT AHRS_SELECT_CF
 
 #define dt 0.002 //0.002s = 500Hz
 
@@ -283,10 +283,10 @@ void ahrs_complementary_filter_loop(void)
 	quat_normalize(&_mat_(x_posteriori)[0]);
 
 	/* update state variables for rate gyro */
-	_mat_(x_priori)[0] = q_fused[0];
-	_mat_(x_priori)[1] = q_fused[1];
-	_mat_(x_priori)[2] = q_fused[2];
-	_mat_(x_priori)[3] = q_fused[3];
+	_mat_(x_priori)[0] = _mat_(x_posteriori)[0];
+	_mat_(x_priori)[1] = _mat_(x_posteriori)[1];
+	_mat_(x_priori)[2] = _mat_(x_posteriori)[2];
+	_mat_(x_priori)[3] = _mat_(x_posteriori)[3];
 
 	/* convert fused attitude from quaternion to euler angle */
 	quat_to_euler(q_fused, &ahrs.attitude);
