@@ -152,6 +152,17 @@ class serial_plotter_class:
         	self.create_curve('q2', 'green')
         	self.create_curve('q3', 'orange')
         	self.show_subplot()
+        elif message_id == 5:
+         	plt.subplot(111)
+        	plt.ylabel('pid controller debug')
+        	plt.ylim([-50, 50])
+        	self.create_curve('error', 'red')
+                self.create_curve('error derivative', 'orange')
+        	self.create_curve('p term', 'yellow')
+                self.create_curve('i term', 'green')
+                self.create_curve('d term', 'blue')
+        	self.create_curve('pid final', 'purple')
+        	self.show_subplot()
 
     def show_graph(self):
 	ani = animation.FuncAnimation(self.figure, self.animate, np.arange(0, 200), \

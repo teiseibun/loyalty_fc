@@ -5,6 +5,9 @@ typedef struct {
 	float kp;
 	float ki;
 	float kd;
+	float p_final;
+	float i_final;
+	float d_final;
 	float error_current;
 	float error_last;
 	float error_integral;

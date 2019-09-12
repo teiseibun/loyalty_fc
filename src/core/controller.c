@@ -12,7 +12,10 @@ void attitude_pd_control(pid_control_t *pid, float ahrs_attitude,
 
 	pid->error_derivative = angular_velocity;
 
-	pid->output = pid->kp * pid->error_current + pid->kd * pid->error_derivative;
+	pid->p_final = pid->kp * pid->error_current;
+	pid->d_final = pid->kd * pid->error_derivative;
+
+	pid->output = pid->p_final + pid->d_final;
 
 	if(pid->output > pid->output_max) pid->output = pid->output_max;
 	if(pid->output < pid->output_min) pid->output = pid->output_min;
@@ -21,6 +24,9 @@ void attitude_pd_control(pid_control_t *pid, float ahrs_attitude,
 void yaw_rate_p_control(pid_control_t *pid, float setpoint_yaw_rate, float angular_velocity)
 {
 	pid->error_current = setpoint_yaw_rate - angular_velocity;
+
+	pid->p_final = pid->kp * pid->error_current;
+	pid->output = pid->p_final;
 
 	bound_float(&pid->output, pid->output_max, pid->output_min);
 }

@@ -6,9 +6,14 @@
 #include "vector.h"
 #include "matrix.h"
 #include "ahrs.h"
+#include "controller.h"
 
 extern imu_t imu;
 extern ahrs_t ahrs;
+
+extern pid_control_t pid_roll;
+extern pid_control_t pid_pitch;
+extern pid_control_t pid_yaw_rate;
 
 extern float _mat_(P)[4 * 4];
 extern float _mat_(K)[4 * 4];
@@ -132,14 +137,33 @@ void send_ekf_message(void)
 	send_onboard_data(payload, payload_size);
 }
 
+void send_pid_debug(void)
+{
+	uint8_t payload[512] = {0}; //~64 float
+	int payload_size = 3; //reserved for header message
+
+	payload[2] = MESSAGE_ID_PID_DEBUG;
+
+	//roll pd control
+	payload_size += pack_float(&pid_roll.error_current, payload + payload_size);
+	payload_size += pack_float(&pid_roll.error_derivative, payload + payload_size);
+	payload_size += pack_float(&pid_roll.p_final, payload + payload_size);
+	payload_size += pack_float(&pid_roll.i_final, payload + payload_size);
+	payload_size += pack_float(&pid_roll.d_final, payload + payload_size);
+	payload_size += pack_float(&pid_roll.output, payload + payload_size);
+
+	send_onboard_data(payload, payload_size);
+}
+
 void telemetry_loop()
 {
 	if(uart3_tx_busy() == true)
 		return;
 
-	send_imu_message();
+	//send_imu_message();
 	//send_attitude_euler_message();
-	//send_attitude_quaternion_message();
+	send_attitude_quaternion_message();
 	//send_attitude_imu_message();
 	//send_ekf_message();
+	//send_pid_debug();
 }
