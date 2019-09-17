@@ -216,6 +216,9 @@ class serial_plotter_class:
                 checksum ^= buffer_checksum
 
             #checksum test
+            while ser.inWaiting() == 0:
+                continue
+
             received_checksum ,= struct.unpack("B", ser.read())
             if received_checksum != checksum:
                     print("error: checksum mismatch");

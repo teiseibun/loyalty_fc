@@ -5,10 +5,10 @@ void timer1_init()
 {
         RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM1, ENABLE);
 
-        /* 168Mhz / (8400 * 200) = 100hz */
+        /* 168MHz / (8400 * 400) = 50Hz */
         TIM_TimeBaseInitTypeDef TimeBaseInitStruct = {
                 .TIM_Period = 8400 - 1,
-                .TIM_Prescaler = 200 - 1,
+                .TIM_Prescaler = 400 - 1,
                 .TIM_CounterMode = TIM_CounterMode_Up
         };
         TIM_TimeBaseInit(TIM1, &TimeBaseInitStruct);

@@ -132,7 +132,7 @@ int main(void)
 	pid_controller_init();
 
 	SysTick_Config(SystemCoreClock / 500); //500Hz flight controller main loop
-	timer1_init(); //100Hz telemetry loop
+	timer1_init(); //50Hz telemetry loop
 
 	while(1);
 

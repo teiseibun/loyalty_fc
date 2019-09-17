@@ -158,7 +158,10 @@ def serial_receive():
             checksum ^= buffer_checksum
 
         #checksum test
-        received_checksum ,= struct.unpack("B", ser.read())
+        while ser.inWaiting() == 0:
+            continue
+
+        received_checksum ,= struct.unpack("B", ser.read(1))
         if received_checksum != checksum:
                 print("error: checksum mismatch");
                 return 'fail'
