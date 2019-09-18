@@ -161,6 +161,7 @@ void send_pid_debug(void)
 
 	payload[2] = MESSAGE_ID_PID_DEBUG;
 
+#if 0
 	//roll pd control
 	payload_size += pack_float(&pid_roll.error_current, payload + payload_size);
 	payload_size += pack_float(&pid_roll.error_derivative, payload + payload_size);
@@ -168,6 +169,14 @@ void send_pid_debug(void)
 	payload_size += pack_float(&pid_roll.i_final, payload + payload_size);
 	payload_size += pack_float(&pid_roll.d_final, payload + payload_size);
 	payload_size += pack_float(&pid_roll.output, payload + payload_size);
+#endif
+
+	payload_size += pack_float(&pid_pitch.error_current, payload + payload_size);
+	payload_size += pack_float(&pid_pitch.error_derivative, payload + payload_size);
+	payload_size += pack_float(&pid_pitch.p_final, payload + payload_size);
+	payload_size += pack_float(&pid_pitch.i_final, payload + payload_size);
+	payload_size += pack_float(&pid_pitch.d_final, payload + payload_size);
+	payload_size += pack_float(&pid_pitch.output, payload + payload_size);
 
 	send_onboard_data(payload, payload_size);
 }
