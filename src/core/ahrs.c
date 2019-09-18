@@ -63,7 +63,7 @@ void ahrs_ekf_init(void)
 
 	_mat_(P)[0] = _mat_(P)[5] = _mat_(P)[10] = _mat_(P)[15] =  100.0f;
 	_mat_(Q)[0] = _mat_(Q)[5] = _mat_(Q)[10] = _mat_(Q)[15] = 0.1f; 
-	_mat_(R)[0] = _mat_(R)[5] = _mat_(R)[10] = _mat_(R)[15] = 0.01;
+	_mat_(R)[0] = _mat_(R)[5] = _mat_(R)[10] = _mat_(R)[15] = 0.001;
 
 	//initialize lpf
 	mpu9250_read_unscaled_data(&imu.unscaled_accel, &imu.unscaled_gyro);
@@ -308,8 +308,8 @@ void ahrs_estimate_euler(float *roll, float *pitch, float *yaw)
 	mpu9250_gyro_convert_to_scale(&imu.unscaled_gyro, &imu.raw_gyro);
 	
 	/* apply low pass filter */
-	lpf_ema_vector3d(&imu.raw_accel, &accel_lpf_old, &imu.filtered_accel, 0.2);
-	lpf_ema_vector3d(&imu.raw_gyro, &gyro_lpf_old, &imu.filtered_gyro, 0.2);
+	lpf_ema_vector3d(&imu.raw_accel, &accel_lpf_old, &imu.filtered_accel, 0.01);
+	lpf_ema_vector3d(&imu.raw_gyro, &gyro_lpf_old, &imu.filtered_gyro, 0.01);
 
 #if AHRS_SELECT == AHRS_SELECT_EKF 
 	ahrs_ekf_loop();
