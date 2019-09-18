@@ -28,15 +28,15 @@ pid_control_t pid_yaw_rate;
 
 void pid_controller_init(void)
 {
-	pid_roll.kp = 0.3f;
+	pid_roll.kp = 0.25f;
 	pid_roll.ki = 0.0f;
-	pid_roll.kd = 0.2f;
+	pid_roll.kd = 0.03f;
 	pid_roll.output_min = -35.0f; //[%]
 	pid_roll.output_max = +35.0f;
 
-	pid_pitch.kp = 0.3f;
+	pid_pitch.kp = 0.25f;
 	pid_pitch.ki = 0.0f;
-	pid_pitch.kd = 0.2f;
+	pid_pitch.kd = 0.03f;
 	pid_pitch.output_min = -35.0f; //[%]
 	pid_pitch.output_max = +35.0f;
 
