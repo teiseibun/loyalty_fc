@@ -1,6 +1,7 @@
 #include "stm32f4xx_conf.h"
 #include "delay.h"
 #include "uart.h"
+#include "led.h"
 #include "mpu9250.h"
 #include "vector.h"
 
@@ -51,19 +52,47 @@ void mpu9250_reset()
 void mpu9250_bias_calculate(void)
 {
 	vector3d_16_t accel_unscaled, gyro_unscaled;
+	vector3d_16_t gyro_unscaled_last;
 
 	vector3d_f_t gyro_bias_float = {.x = 0.0f, .y = 0.0f, .z = 0.0f};
 
+	int16_t gyro_recalib_threshold = 30;
+
+	recalibrate:
+	mpu9250_read_unscaled_data(&accel_unscaled, &gyro_unscaled);
+	gyro_unscaled_last = gyro_unscaled;
+
 	int count = 10000;
 
+	led_on(LED1);
+	led_on(LED2);
+	led_on(LED3);
+
 	int i;
-	for(i = 0; i < count; i++) {
+	for(i = 1; i < count; i++) {
 		mpu9250_read_unscaled_data(&accel_unscaled, &gyro_unscaled);
 
 		gyro_bias_float.x += (float)gyro_unscaled.x / (float)count;
 		gyro_bias_float.y += (float)gyro_unscaled.y / (float)count;
 		gyro_bias_float.z += (float)gyro_unscaled.z / (float)count;
+
+		int16_t gyro_change_x = abs(gyro_unscaled.x - gyro_unscaled_last.x);
+		int16_t gyro_change_y = abs(gyro_unscaled.y - gyro_unscaled_last.y);
+		int16_t gyro_change_z = abs(gyro_unscaled.z - gyro_unscaled_last.z);
+
+		//printf("dx:%d, dy:%d, dz:%d\n\r", gyro_change_x, gyro_change_y, gyro_change_z);
+
+		if(gyro_change_x > gyro_recalib_threshold || gyro_change_y > gyro_recalib_threshold ||
+		   gyro_change_z > gyro_recalib_threshold) {
+			goto recalibrate;
+		}
+
+		gyro_unscaled_last = gyro_unscaled;
 	}
+
+	led_off(LED1);
+	led_off(LED2);
+	led_off(LED3);
 
 	mpu9250_gyro_error_bias.x = (int16_t)gyro_bias_float.x;
 	mpu9250_gyro_error_bias.y = (int16_t)gyro_bias_float.y;
