@@ -30,7 +30,7 @@ void esc_calibrate()
 	set_motor_pwm_pulse(MOTOR3, MOTOR_PULSE_MAX);
 	set_motor_pwm_pulse(MOTOR4, MOTOR_PULSE_MAX);
 
-	delay_ms(2000);
+	delay_ms(5000);
 
 	set_motor_pwm_pulse(MOTOR1, MOTOR_PULSE_MIN);
 	set_motor_pwm_pulse(MOTOR2, MOTOR_PULSE_MIN);

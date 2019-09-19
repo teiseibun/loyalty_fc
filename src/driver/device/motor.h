@@ -3,7 +3,7 @@
 
 #include "stm32f4xx.h"
 
-#define MOTOR_PULSE_MAX 2375
+#define MOTOR_PULSE_MAX 2000
 #define MOTOR_PULSE_MIN 800
 
 #define MOTOR1 &TIM4->CCR1
