@@ -9,7 +9,7 @@
 #include "uart.h"
 #include "matrix.h"
 
-#define AHRS_SELECT AHRS_SELECT_EKF
+#define AHRS_SELECT AHRS_SELECT_CF
 
 #define dt 0.002 //0.002s = 500Hz
 
@@ -274,7 +274,7 @@ void ahrs_complementary_filter_loop(void)
 	convert_gravity_to_quat(&imu.filtered_accel, q_gravity);
 
 	/* sensors fusion */
-	float a = 0.0001f;
+	float a = 0.05f;
 	float q_fused[4];
 	_mat_(x_posteriori)[0] = (_mat_(x_priori)[0] * a) + (q_gravity[0]* (1.0 - a));
 	_mat_(x_posteriori)[1] = (_mat_(x_priori)[1] * a) + (q_gravity[1]* (1.0 - a));
@@ -308,8 +308,8 @@ void ahrs_estimate_euler(float *roll, float *pitch, float *yaw)
 	mpu9250_gyro_convert_to_scale(&imu.unscaled_gyro, &imu.raw_gyro);
 	
 	/* apply low pass filter */
-	lpf_ema_vector3d(&imu.raw_accel, &accel_lpf_old, &imu.filtered_accel, 0.01);
-	lpf_ema_vector3d(&imu.raw_gyro, &gyro_lpf_old, &imu.filtered_gyro, 0.01);
+	lpf_ema_vector3d(&imu.raw_accel, &accel_lpf_old, &imu.filtered_accel, 0.03);
+	lpf_ema_vector3d(&imu.raw_gyro, &gyro_lpf_old, &imu.filtered_gyro, 0.03);
 
 #if AHRS_SELECT == AHRS_SELECT_EKF 
 	ahrs_ekf_loop();

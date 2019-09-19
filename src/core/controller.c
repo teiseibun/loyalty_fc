@@ -25,7 +25,8 @@ void attitude_pd_control(pid_control_t *pid, float ahrs_attitude,
 
 void yaw_rate_p_control(pid_control_t *pid, float setpoint_yaw_rate, float angular_velocity)
 {
-	pid->error_current = setpoint_yaw_rate - angular_velocity;
+	//pid->error_current = setpoint_yaw_rate - angular_velocity;
+	pid->error_current = setpoint_yaw_rate;
 
 	pid->p_final = pid->kp * pid->error_current;
 	pid->output = pid->p_final;
