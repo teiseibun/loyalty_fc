@@ -189,9 +189,9 @@ void mpu9250_read_unscaled_data(vector3d_16_t *accel_unscaled_data, vector3d_16_
 	temp = (buffer[6] << 8) | buffer[7];
 #endif
 	//gyroscope
-	gyro_unscaled_data->x = (buffer[8] << 8) | buffer[9];
-	gyro_unscaled_data->y = (buffer[10] << 8) | buffer[11];
-	gyro_unscaled_data->z = (buffer[12] << 8) | buffer[13];
+	gyro_unscaled_data->x = -(buffer[8] << 8) | buffer[9];
+	gyro_unscaled_data->y = -(buffer[10] << 8) | buffer[11];
+	gyro_unscaled_data->z = -(buffer[12] << 8) | buffer[13];
 #if 0
 	//magnetometer
 	uint8_t ak8963_status1 = buffer[14];
