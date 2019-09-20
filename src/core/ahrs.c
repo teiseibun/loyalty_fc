@@ -274,7 +274,7 @@ void ahrs_complementary_filter_loop(void)
 	convert_gravity_to_quat(&imu.filtered_accel, q_gravity);
 
 	/* sensors fusion */
-	float a = 0.05f;
+	float a = 0.0001f;
 	float q_fused[4];
 	_mat_(x_posteriori)[0] = (_mat_(x_priori)[0] * a) + (q_gravity[0]* (1.0 - a));
 	_mat_(x_posteriori)[1] = (_mat_(x_priori)[1] * a) + (q_gravity[1]* (1.0 - a));
@@ -289,7 +289,7 @@ void ahrs_complementary_filter_loop(void)
 	_mat_(x_priori)[3] = _mat_(x_posteriori)[3];
 
 	/* convert fused attitude from quaternion to euler angle */
-	quat_to_euler(q_fused, &ahrs.attitude);
+	quat_to_euler(_mat_(x_posteriori), &ahrs.attitude);
 	ahrs.attitude.roll = rad_to_deg(ahrs.attitude.roll);
 	ahrs.attitude.pitch = rad_to_deg(ahrs.attitude.pitch);
 }
