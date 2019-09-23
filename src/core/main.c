@@ -28,19 +28,19 @@ pid_control_t pid_yaw_rate;
 
 void pid_controller_init(void)
 {
-	pid_roll.kp = 0.35f;
+	pid_roll.kp = 0.4f;
 	pid_roll.ki = 0.0f;
-	pid_roll.kd = 0.1f;
+	pid_roll.kd = 0.2f;
 	pid_roll.output_min = -35.0f; //[%]
 	pid_roll.output_max = +35.0f;
 
-	pid_pitch.kp = 0.35f;
+	pid_pitch.kp = 0.4f;
 	pid_pitch.ki = 0.0f;
-	pid_pitch.kd = 0.1f;
+	pid_pitch.kd = 0.2f;
 	pid_pitch.output_min = -35.0f; //[%]
 	pid_pitch.output_max = +35.0f;
 
-	pid_yaw_rate.kp = 0.0f;
+	pid_yaw_rate.kp = 0.5f;
 	pid_yaw_rate.ki = 0.0f;
 	pid_yaw_rate.kd = 0.0f;
 	pid_yaw_rate.output_min = -35.0f;
@@ -58,7 +58,7 @@ void SysTick_Handler()
 
 	attitude_pd_control(&pid_roll, roll_estimated, -rc.roll_angle, imu.filtered_gyro.x);
 	attitude_pd_control(&pid_pitch, pitch_estimated, -rc.pitch_angle, imu.filtered_gyro.y);
-	yaw_rate_p_control(&pid_yaw_rate, -rc.yaw_rate, imu.filtered_gyro.z);
+	yaw_rate_p_control(&pid_yaw_rate, rc.yaw_rate, imu.filtered_gyro.z);
 
 	if(rc.safety_status == ENGINE_ON) {
 		led_on(LED3);
