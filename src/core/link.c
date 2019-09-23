@@ -171,12 +171,24 @@ void send_pid_debug(void)
 	payload_size += pack_float(&pid_roll.output, payload + payload_size);
 #endif
 
+#if 0
 	payload_size += pack_float(&pid_pitch.error_current, payload + payload_size);
 	payload_size += pack_float(&pid_pitch.error_derivative, payload + payload_size);
 	payload_size += pack_float(&pid_pitch.p_final, payload + payload_size);
 	payload_size += pack_float(&pid_pitch.i_final, payload + payload_size);
 	payload_size += pack_float(&pid_pitch.d_final, payload + payload_size);
 	payload_size += pack_float(&pid_pitch.output, payload + payload_size);
+#endif
+
+#if 1
+	payload_size += pack_float(&pid_yaw_rate.error_current, payload + payload_size);
+	payload_size += pack_float(&pid_yaw_rate.error_derivative, payload + payload_size);
+	payload_size += pack_float(&pid_yaw_rate.p_final, payload + payload_size);
+	payload_size += pack_float(&pid_yaw_rate.i_final, payload + payload_size);
+	payload_size += pack_float(&pid_yaw_rate.d_final, payload + payload_size);
+	payload_size += pack_float(&pid_yaw_rate.output, payload + payload_size);
+#endif
+
 
 	send_onboard_data(payload, payload_size);
 }
@@ -188,9 +200,9 @@ void telemetry_loop()
 
 	//send_imu_message();
 	//send_attitude_euler_message();
-	//send_attitude_quaternion_message();
+	send_attitude_quaternion_message();
 	//send_attitude_imu_message();
 	//send_ekf_message();
-	send_pid_debug();
+	//send_pid_debug();
 	//send_motor_message();
 }
